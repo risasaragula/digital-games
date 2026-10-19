@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChefDesk | Scratch & Win</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../shared/customer.css">
+</head>
+<body>
+  <header class="header">
+    <a href="../Dashboard/index.html" class="logo"><span class="logo-icon"></span>Chef<span>Desk</span><b>.</b></a>
+    <a href="../Dashboard/index.html" class="back-link">← Dashboard</a>
+  </header>
+
+  <main>
+    <h1>Scratch & <em>Win.</em></h1>
+    <p class="subtitle">A delicious surprise is waiting underneath.</p>
+    <section id="checkin-screen" class="panel">
+      <div class="big-icon">🎟️</div>
+      <h2>Unlock your scratch card</h2>
+      <p class="description"> Enter your restaurant visit code to unlock one scratch card. </p>
+      <p class="account-line"> Playing as <strong id="customer-phone"></strong></p>
+      <form id="checkin-form">
+        <label for="visit-code">Visit code</label>
+        <input
+          id="visit-code"
+          type="text"
+          maxlength="40"
+          placeholder="Example: BILL1001"
+          required
+        >
+        <button class="primary-btn" type="submit">Unlock My Card →</button>
+      </form>
+      <p class="helper">One scratch card per visit code in this demo.</p>
+      <p id="checkin-error" class="error" role="alert"></p>
+    </section>
+    <section id="scratch-screen" class="panel" hidden>
+      <h2>Scratch to discover!</h2>
+      <p class="description">Scratch the silver area with your finger or mouse.</p>
+      <div class="scratch-card" id="scratch-card">
+        <div class="prize-underlay">
+          <div class="prize-emoji" id="hidden-emoji">🎁</div>
+          <div class="underlay-label">YOUR SURPRISE</div>
+          <div class="hidden-prize" id="hidden-prize"></div>
+        </div>
+        <canvas id="scratch-canvas" aria-label="Scratch to reveal your reward"></canvas>
+      </div>
+      <p class="scratch-progress" id="scratch-progress">Scratch the card to reveal your result</p>
+      <button id="reveal-button" class="reveal-btn" type="button">Can't scratch? Reveal result</button>
+    </section>
+
+    <section id="result-screen" class="panel" hidden>
+      <div class="big-icon" id="result-emoji">🎉</div>
+      <p class="step-label">YOUR SCRATCH RESULT</p>
+      <h2 id="result-heading"></h2>
+      <div class="result-prize" id="result-prize"></div>
+      <p class="description" id="result-description"></p>
+      <a id="rewards-link" class="primary-btn button-link" href="../My Rewards/index.html" hidden>View My Rewards →</a>
+      <p id="no-win-note" class="no-win-note" hidden>Come back on another restaurant visit for a new chance!</p>
+      <a href="../Dashboard/index.html" class="secondary-link"> Back to Dashboard → </a>
+    </section>
+  </main>
+
+  <footer>© ChefDesk · Play, smile, repeat.</footer>
+
+  <script src="../shared/customer.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

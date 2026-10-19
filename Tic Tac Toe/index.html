@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic Tac Toe | ChefDesk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a href="../Dashboard/index.html" class="brand">
+      ChefDesk<span>.</span>
+    </a>
+    <a href="../Dashboard/index.html" class="back-link">
+      ← Dashboard
+    </a>
+  </header>
+
+  <main class="page-container">
+    <div class="page-heading">
+      <p class="eyebrow">CHEFDESK DIGITAL GAMES</p>
+      <h1>Tic Tac <span>Toe.</span></h1>
+      <p class="subtitle">
+        A little strategy makes every moment more fun.
+      </p>
+    </div>
+
+    <section id="modeScreen" class="content-card">
+      <p class="step-label">CHOOSE YOUR EXPERIENCE</p>
+      <h2>How would you like to play?</h2>
+      <p class="card-description">
+        Take on the computer or challenge a friend, wherever they are.
+      </p>
+
+      <div class="mode-grid">
+        <button id="chooseAI" class="mode-card" type="button">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="4" y="7" width="16" height="13" rx="3"/>
+            <path d="M12 3v4M9 3h6"/>
+            <circle cx="9" cy="13" r="1"/>
+            <circle cx="15" cy="13" r="1"/>
+            <path d="M9 17h6M2 12v4M22 12v4"/>
+          </svg>
+
+          <strong>Play Against AI</strong>
+          <small>Three difficulty levels</small>
+          <span class="mode-arrow">Explore →</span>
+        </button>
+
+        <button id="chooseOnline" class="mode-card" type="button">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="9" cy="8" r="3"/>
+            <path d="M3 20v-2a6 6 0 0 1 12 0v2"/>
+            <path d="M17 5a3 3 0 0 1 0 6"/>
+            <path d="M18 14a5 5 0 0 1 3 5v1"/>
+          </svg>
+
+          <strong>Online Multiplayer</strong>
+          <small>Play with friends anywhere</small>
+          <span class="mode-arrow">Explore →</span>
+        </button>
+      </div>
+
+      <p class="card-footnote">
+        Unlimited games. Play at your own pace.
+      </p>
+    </section>
+
+    <section id="aiSettings" class="content-card hidden">
+      <p class="step-label">SINGLE PLAYER</p>
+      <h2>Choose your challenge.</h2>
+      <p class="card-description">
+        Select the difficulty that suits your strategy.
+      </p>
+
+      <div class="difficulty-grid">
+        <button
+          data-difficulty="easy"
+          class="difficulty-card"
+          type="button"
+        >
+          <span class="difficulty-number">01</span>
+          <strong>Easy</strong>
+          <small>A relaxed challenge</small>
+        </button>
+
+        <button
+          data-difficulty="medium"
+          class="difficulty-card"
+          type="button"
+        >
+          <span class="difficulty-number">02</span>
+          <strong>Medium</strong>
+          <small>Think a step ahead</small>
+        </button>
+
+        <button
+          data-difficulty="nightmare"
+          class="difficulty-card"
+          type="button"
+        >
+          <span class="difficulty-number">03</span>
+          <strong>Expert</strong>
+          <small>Play against perfect strategy</small>
+        </button>
+      </div>
+
+      <button id="backFromAI" class="text-button" type="button">
+        ← Back to game modes
+      </button>
+    </section>
+
+    <section id="onlineLobby" class="content-card hidden">
+      <p class="step-label">ONLINE MULTIPLAYER</p>
+      <h2>Play together, anywhere.</h2>
+      <p class="card-description">
+        Create a private room or join a friend's game.
+      </p>
+
+      <p id="connection" class="connection" aria-live="polite">
+        Connecting to multiplayer...
+      </p>
+
+      <div class="form-group">
+        <label for="playerName">Your name</label>
+        <input
+          id="playerName"
+          maxlength="24"
+          placeholder="Enter your name"
+          autocomplete="nickname"
+        >
+      </div>
+
+      <button
+        id="createRoom"
+        class="primary-button full-width"
+        type="button"
+      >
+        Create Private Room →
+      </button>
+
+      <div class="form-divider">
+        <span>OR JOIN AN EXISTING ROOM</span>
+      </div>
+
+      <div class="form-group">
+        <label for="roomCode">Room code</label>
+        <input
+          id="roomCode"
+          maxlength="6"
+          placeholder="Enter six-character code"
+          autocomplete="off"
+        >
+      </div>
+
+      <button
+        id="joinRoom"
+        class="secondary-button full-width"
+        type="button"
+      >
+        Join Room →
+      </button>
+
+      <button id="backFromOnline" class="text-button" type="button">
+        ← Back to game modes
+      </button>
+    </section>
+
+    <section id="gameArea" class="content-card game-content hidden">
+      <p class="step-label">THE GAME IS ON</p>
+      <h2>Make your move.</h2>
+
+      <div id="onlineInfo" class="room-info hidden">
+        <span class="room-label">PRIVATE ROOM</span>
+        <strong id="displayCode">------</strong>
+
+        <button id="copyInvite" class="secondary-button" type="button">
+          Copy Invite Link
+        </button>
+      </div>
+
+      <div class="players">
+        <div class="player">
+          <span>PLAYER X</span>
+          <strong id="nameX">You</strong>
+        </div>
+
+        <div class="player">
+          <span>PLAYER O</span>
+          <strong id="nameO">Computer</strong>
+        </div>
+      </div>
+
+      <p id="status" class="game-status" aria-live="polite">
+        Your turn
+      </p>
+
+      <div id="board" class="board">
+        <button class="cell" data-index="0" type="button" aria-label="Top left"></button>
+        <button class="cell" data-index="1" type="button" aria-label="Top middle"></button>
+        <button class="cell" data-index="2" type="button" aria-label="Top right"></button>
+        <button class="cell" data-index="3" type="button" aria-label="Middle left"></button>
+        <button class="cell" data-index="4" type="button" aria-label="Center"></button>
+        <button class="cell" data-index="5" type="button" aria-label="Middle right"></button>
+        <button class="cell" data-index="6" type="button" aria-label="Bottom left"></button>
+        <button class="cell" data-index="7" type="button" aria-label="Bottom middle"></button>
+        <button class="cell" data-index="8" type="button" aria-label="Bottom right"></button>
+      </div>
+
+      <div class="game-actions">
+        <button id="playAgain" class="primary-button" type="button">
+          Play Again →
+        </button>
+
+        <button id="changeMode" class="secondary-button" type="button">
+          Change Mode
+        </button>
+      </div>
+
+      <p id="gameNote" class="card-footnote">
+        Unlimited gameplay. Restaurant rewards are subject to eligibility.
+      </p>
+    </section>
+
+    <p id="message" class="message" role="status" aria-live="polite"></p>
+  </main>
+
+  <footer class="site-footer">
+    ChefDesk Digital Games
+  </footer>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

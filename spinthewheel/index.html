@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChefDesk | Spin & Win</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../shared/customer.css">
+</head>
+<body>
+  <header class="header">
+    <a class="logo" href="../Dashboard/index.html">ChefDesk<span>.</span></a>
+    <a class="back-link" href="../Dashboard/index.html">← Dashboard</a>
+  </header>
+  <main class="main">
+    <p class="eyebrow">CHEFDESK REWARDS</p>
+    <h1>Spin & <em>Win.</em></h1>
+    <p class="subtitle">Good food deserves a little surprise.</p>
+    <section id="checkin-screen" class="checkin-card">
+      <p class="step-label">STEP 01 · YOUR VISIT</p>
+      <div class="checkin-icon">🎟️</div>
+      <h2>Unlock your spin!</h2>
+      <p class="card-description">Welcome back! Enter the visit code from your restaurant bill or order.</p>
+      <p class="customer-info"> Playing as<strong id="logged-in-phone"></strong></p>
+      <form id="checkin-form">
+        <label for="visit-code">Visit code</label>
+        <input id="visit-code" class="text-input type="text" placeholder="Example: BILL1001" maxlength="40" required>
+        <button type="submit" class="primary-btn">Unlock My Spin →</button>
+      </form>
+      <p class="helper-text">One spin per visit code. A new visit unlocks a new chance.</p>
+      <p id="checkin-error" class="error-message" role="alert"></p>
+    </section>
+
+    <section id="game-screen" hidden>
+      <div class="status-pill">✓ Visit ready · One spin available</div>
+      <div class="wheel-wrapper">
+        <div class="wheel-pointer"></div>
+        <div class="wheel" id="wheel">
+          <div class="wheel-label label-1"><span>FREE<br>COFFEE</span></div>
+          <div class="wheel-label label-2"><span>10%<br>OFF</span></div>
+          <div class="wheel-label label-3"><span>FREE<br>DESSERT</span></div>
+          <div class="wheel-label label-4"><span>TRY<br>AGAIN</span></div>
+          <div class="wheel-label label-5"><span>BONUS<br>POINTS</span></div>
+          <div class="wheel-label label-6"><span>FREE<br>UPGRADE</span></div>
+        </div>
+        <button id="spin-button" class="spin-button" type="button">SPIN</button>
+      </div>
+      <p id="spin-hint" class="spin-hint"> Tap SPIN to reveal your surprise! </p>
+    </section>
+
+    <section id="result-screen" hidden>
+      <div class="result-card">
+        <div id="result-icon" class="result-icon">🎉</div>
+        <p class="step-label">YOUR SPIN RESULT</p>
+        <h2 id="result-heading"></h2>
+        <div id="prize-name" class="prize-name"></div>
+        <p id="result-description" class="card-description"></p>
+        <div id="winner-actions" hidden>
+          <a class="primary-btn link-btn" href="../My Rewards/index.html">View My Rewards →</a>
+        </div>
+        <div id="loser-actions" hidden>
+          <div class="next-visit-note">Come back for another verified visit to unlock your next spin!</div>
+        </div>
+        <a class="secondary-link" href="../Dashboard/index.html"> Back to Dashboard →</a>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">Made for good food and great moments.<br>© ChefDesk</footer>
+  <script src="../shared/customer.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

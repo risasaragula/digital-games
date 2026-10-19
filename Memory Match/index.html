@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Match | ChefDesk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a href="../Dashboard/index.html" class="brand">
+      ChefDesk<span>.</span>
+    </a>
+    <a href="../Dashboard/index.html" class="back-link">
+      ← Dashboard
+    </a>
+  </header>
+
+  <main class="page-container">
+    <div class="page-heading">
+      <p class="eyebrow">CHEFDESK DIGITAL GAMES</p>
+      <h1>Food <span>Match.</span></h1>
+      <p class="subtitle">
+        A little memory makes every moment more rewarding.
+      </p>
+    </div>
+
+    <section class="game-panel">
+      <div class="game-intro">
+        <p class="step-label">THE MEMORY CHALLENGE</p>
+        <h2>Find three of a kind.</h2>
+        <p class="description">
+          Flip three cards at a time and discover matching food items.
+          Complete all 13 sets to finish the challenge.
+        </p>
+      </div>
+
+      <div class="game-stats">
+        <div class="stat-card">
+          <span>MOVES</span>
+          <strong id="moves">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>TRIPLE MATCHES</span>
+          <strong id="matches">0/13</strong>
+        </div>
+        <div class="stat-card">
+          <span>TIME</span>
+          <strong id="timer">00:00</strong>
+        </div>
+      </div>
+
+      <p id="status" class="game-status" aria-live="polite">
+        Find three identical food cards.
+      </p>
+
+      <div id="memoryGrid" class="memory-grid" aria-label="Food Match game board"></div>
+
+      <div class="game-actions">
+        <button id="restartGame" class="primary-button" type="button">
+          Restart Game →
+        </button>
+        <a href="../Dashboard/index.html" class="secondary-button">
+          Back to Dashboard
+        </a>
+      </div>
+
+      <div id="completionPanel" class="completion-panel hidden" aria-live="polite">
+        <p class="step-label">CHALLENGE COMPLETED</p>
+        <h2>Well played.</h2>
+        <p id="completionText"></p>
+        <button id="playAgain" class="primary-button" type="button">
+          Play Again →
+        </button>
+      </div>
+
+      <p class="footnote">
+        Unlimited gameplay. Restaurant rewards are subject to eligibility.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    ChefDesk Digital Games
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

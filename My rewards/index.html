@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChefDesk | My Rewards</title>
+  <link rel="stylesheet" href="../shared/customer.css">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #faf7ef;
+      font-family: Arial, sans-serif;
+      color: #204b39;
+    }
+    header {
+      max-width: 850px;
+      margin: auto;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header a {
+      text-decoration: none;
+      color: #204b39;
+      font-weight: bold;
+    }
+    main {
+      max-width: 650px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+    h1 {
+      font-family: Georgia, serif;
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #77867b;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .account-card {
+      background: #204b39;
+      color: white;
+      border-radius: 18px;
+      padding: 25px;
+      margin: 25px 0;
+    }
+    .account-card p {
+      color: #d4e3d7;
+      font-size: 12px;
+    }
+    .account-card h2 {
+      font-size: 22px;
+      margin: 12px 0;
+    }
+    .reward-card {
+      background: #fffdf7;
+      border: 1px solid #e5e7db;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 13px 0;
+    }
+    .reward-card h3 {
+      font-size: 22px;
+      margin: 10px 0;
+    }
+    .reward-card p {
+      color: #77867b;
+      font-size: 13px;
+    }
+    .reward-tag {
+      display: inline-block;
+      background: #fff1e5;
+      color: #a55d34;
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .empty {
+      padding: 40px 20px;
+      text-align: center;
+      border: 1px dashed #cbd5c9;
+      border-radius: 15px;
+      color: #77867b;
+      line-height: 1.7;
+    }
+    .logout {
+      border: 1px solid #ffffff88;
+      border-radius: 8px;
+      padding: 10px 15px;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a href="../Dashboard/index.html">ChefDesk.</a>
+    <a href="../Dashboard/index.html">← Games</a>
+  </header>
+  <main>
+    <h1>My Rewards 🎁</h1>
+    <p class="subtitle">All your rewards, together in one place.</p>
+    <div class="account-card">
+      <h2 id="customer-number"></h2>
+      <button class="logout" id="logout-btn">Log Out</button>
+    </div>
+    <h2>My Coupons</h2>
+    <div id="rewards-list"></div>
+  </main>
+  <script src="../shared/customer.js"></script>
+  <script>
+    const customerNumber = document.getElementById("customer-number");
+    const rewardsList = document.getElementById("rewards-list");
+    function renderRewards() {
+      const customer = ChefDesk.getCustomer();
+      if (!customer) return;
+      customerNumber.textContent = customer.displayPhone;
+      const rewards = ChefDesk.getRewards();
+      rewardsList.replaceChildren();
+      if (rewards.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "🎟️ No rewards yet! Play a ChefDesk " + "game to collect your first demo reward.";
+        rewardsList.appendChild(empty);
+        return;
+      }
+      [...rewards].reverse().forEach(reward => {
+        const card = document.createElement("div");
+        card.className = "reward-card";
+
+        const tag = document.createElement("span");
+        tag.className = "reward-tag";
+        tag.textContent = reward.status;
+
+        const title = document.createElement("h3");
+        title.textContent = reward.prize;
+
+        const game = document.createElement("p");
+        game.textContent =
+          "Won from: " + reward.game;
+
+        const date = document.createElement("p");
+        date.textContent =
+          new Date(reward.createdAt).toLocaleString();
+
+        card.append(tag, title, game, date);
+        rewardsList.appendChild(card);
+      });
+    }
+    async function initialize() {
+      await ChefDesk.requireLogin();
+      renderRewards();
+    }
+    document.getElementById("logout-btn")
+      .addEventListener("click", async () => {
+        ChefDesk.logout();
+        await ChefDesk.requireLogin();
+        renderRewards();
+      });
+    initialize();
+  </script>
+</body>
+</html>

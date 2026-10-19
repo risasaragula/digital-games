@@ -1,0 +1,124 @@
+.cd-login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  padding: 16px;
+  box-sizing: border-box;
+  background: rgba(15, 38, 28, 0.7);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.cd-login-box {
+  flex: 0 1 auto;
+  width: 100%;
+  max-width: 390px;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  min-height: 0;
+  margin: auto;
+  padding: 30px 24px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background: #fffdf7;
+  border-radius: 22px;
+  color: #204b39;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+.cd-login-icon {
+  font-size: 45px;
+  margin-bottom: 12px;
+}
+.cd-login-box h2 {
+  font-family: Georgia, serif;
+  font-size: 28px;
+  margin: 0 0 12px;
+}
+.cd-login-box p {
+  color: #77867b;
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 0 0 22px;
+}
+.cd-phone-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #d6ded5;
+  border-radius: 11px;
+  padding: 0 12px;
+  background: white;
+}
+.cd-phone-field span {
+  font-size: 13px;
+  white-space: nowrap;
+}
+.cd-phone-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 15px 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+}
+.cd-login-box button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 15px;
+  background: #204b39;
+  color: white;
+  border: none;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.cd-login-box button:hover {
+  background: #df794e;
+}
+.cd-login-box .cd-login-error {
+  color: #b33232;
+  margin: 12px 0 0;
+}
+.cd-login-box .cd-demo-note {
+  font-size: 11px;
+  margin: 15px 0 0;
+}
+@media (max-width: 768px), (max-height: 650px) {
+  .cd-login-overlay {
+    padding: 12px;
+  }
+  .cd-login-box {
+    max-height: calc(100dvh - 24px);
+    padding: 22px 18px;
+    border-radius: 18px;
+  }
+  .cd-login-icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+  }
+  .cd-login-box h2 {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  .cd-login-box p {
+    margin-bottom: 15px;
+  }
+  .cd-phone-field input {
+    padding: 12px 0;
+  }
+  .cd-login-box button {
+    padding: 13px;
+  }
+}

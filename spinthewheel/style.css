@@ -1,0 +1,336 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
+:root {
+  --green: #204b39;
+  --orange: #df794e;
+  --cream: #faf7ef;
+  --muted: #77867b;
+  --border: #e5e7db;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: var(--cream);
+  color: var(--green);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+}
+[hidden] {
+  display: none !important;
+}
+.header {
+  max-width: 1100px;
+  margin: auto;
+  padding: 24px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logo {
+  color: var(--green);
+  font-size: 23px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.logo span {
+  color: var(--orange);
+}
+.back-link {
+  color: var(--green);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+.main {
+  max-width: 650px;
+  margin: 20px auto 70px;
+  padding: 0 20px;
+  text-align: center;
+}
+.eyebrow, .step-label {
+  color: var(--orange);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(42px, 9vw, 66px);
+  letter-spacing: -2px;
+  margin: 12px 0;
+}
+h1 em {
+  color: var(--orange);
+  font-style: normal;
+}
+.subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 12px 0 30px;
+}
+.checkin-card, .result-card {
+  max-width: 440px;
+  margin: auto;
+  padding: 30px 25px;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: #fffdf8;
+  box-shadow: 0 12px 35px #193c280d;
+}
+.checkin-icon, .result-icon {
+  font-size: 46px;
+  margin: 17px 0;
+}
+.checkin-card h2, .result-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 29px;
+  margin: 12px 0;
+}
+.card-description {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 12px 0 20px;
+}
+.customer-info {
+  padding: 12px;
+  background: #eaf0e8;
+  border-radius: 10px;
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+#checkin-form {
+  text-align: left;
+}
+#checkin-form label {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.text-input {
+  width: 100%;
+  border: 1px solid #d8dfd5;
+  border-radius: 11px;
+  padding: 15px;
+  outline: none;
+  font-family: inherit;
+  font-size: 15px;
+}
+.text-input:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px #df794e22;
+}
+.primary-btn {
+  display: block;
+  width: 100%;
+  padding: 15px 18px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 11px;
+  background: var(--green);
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.primary-btn:hover {
+  background: var(--orange);
+}
+.helper-text {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+  margin-top: 16px;
+}
+.error-message {
+  color: #b33232;
+  font-size: 12px;
+  margin-top: 12px;
+}
+.status-pill {
+  display: inline-block;
+  background: #e5efe7;
+  color: var(--green);
+  padding: 10px 18px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 25px;
+}
+.wheel-wrapper {
+  position: relative;
+  width: min(86vw, 390px);
+  height: min(86vw, 390px);
+  margin: 15px auto;
+}
+.wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  border: 10px solid var(--green);
+  box-shadow:
+    0 12px 0 #143526,
+    0 20px 35px #0002;
+  background: conic-gradient(
+    from -30deg,
+    #f5b16f 0deg 60deg,
+    #f8e4a5 60deg 120deg,
+    #a6c9aa 120deg 180deg,
+    #e69d8d 180deg 240deg,
+    #d7c2e5 240deg 300deg,
+    #c2d9e8 300deg 360deg
+  );
+  transition: transform 5s
+    cubic-bezier(0.12, 0.78, 0.12, 1);
+}
+.wheel-pointer {
+  position: absolute;
+  z-index: 5;
+  top: -17px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 18px solid transparent;
+  border-right: 18px solid transparent;
+  border-top: 35px solid var(--orange);
+}
+.wheel-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 36%;
+  height: 60px;
+  margin-left: -18%;
+  margin-top: -30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: clamp(10px, 2.7vw, 14px);
+  font-weight: 800;
+  line-height: 1.15;
+}
+.label-1 {
+  transform: rotate(0deg) translateY(-105px);
+}
+.label-2 {
+  transform: rotate(60deg) translateY(-105px);
+}
+.label-3 {
+  transform: rotate(120deg) translateY(-105px);
+}
+.label-4 {
+  transform: rotate(180deg) translateY(-105px);
+}
+.label-5 {
+  transform: rotate(240deg) translateY(-105px);
+}
+.label-6 {
+  transform: rotate(300deg) translateY(-105px);
+}
+.spin-button {
+  position: absolute;
+  z-index: 6;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 83px;
+  height: 83px;
+  border-radius: 50%;
+  border: 6px solid #fff8e6;
+  background: var(--green);
+  color: white;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px #0003;
+}
+.spin-button:disabled {
+  cursor: not-allowed;
+}
+.spin-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 28px;
+}
+.prize-name {
+  color: var(--orange);
+  font-family: 'Playfair Display', serif;
+  font-size: 35px;
+  font-weight: 800;
+  margin: 18px 0;
+}
+.next-visit-note {
+  background: #edf1e9;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.link-btn {
+  text-decoration: none;
+  text-align: center;
+}
+.secondary-link {
+  display: inline-block;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  margin-top: 25px;
+}
+.footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 30px 20px;
+  font-size: 12px;
+  line-height: 1.8;
+}
+@media (max-width: 480px) {
+  .header {
+    padding: 18px;
+  }
+  .main {
+    margin-top: 15px;
+  }
+  .checkin-card, .result-card {
+    padding: 25px 18px;
+  }
+  .wheel {
+    border-width: 8px;
+  }
+  .wheel-label {
+    font-size: 10px;
+  }
+  .label-1 {
+    transform: rotate(0deg) translateY(-27vw);
+  }
+  .label-2 {
+    transform: rotate(60deg) translateY(-27vw);
+  }
+  .label-3 {
+    transform: rotate(120deg) translateY(-27vw);
+  }
+  .label-4 {
+    transform: rotate(180deg) translateY(-27vw);
+  }
+  .label-5 {
+    transform: rotate(240deg) translateY(-27vw);
+  }
+  .label-6 {
+    transform: rotate(300deg) translateY(-27vw);
+  }
+  .spin-button {
+    width: 72px;
+    height: 72px;
+    font-size: 15px;
+  }
+}

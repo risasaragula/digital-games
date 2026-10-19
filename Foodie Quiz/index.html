@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foodie Quiz | ChefDesk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+  </head>
+
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="../Dashboard/index.html" class="brand">ChefDesk<span>.</span></a>
+        <a href="../Dashboard/index.html" class="dashboard-link">
+          <span>←</span> Dashboard
+        </a>
+      </div>
+    </header>
+
+    <main class="quiz-container">
+      <p class="eyebrow">FOR THE LOVE OF FOOD</p>
+      <h1>Think you're a <span>foodie?</span></h1>
+      <p class="intro">Put your food knowledge to the test with five delicious questions.</p>
+
+      <div class="quiz-top">
+        <span id="question-count">QUESTION 1 OF 5</span>
+        <span id="score-display">SCORE: 0</span>
+      </div>
+
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+
+      <section class="quiz-card" id="quiz-card" aria-live="polite"></section>
+
+      <p class="quiz-footnote">
+        Play as many times as you like. Quiz scores do not automatically qualify for restaurant rewards.
+      </p>
+    </main>
+
+    <footer class="site-footer">
+      © ChefDesk. Made for food lovers.
+    </footer>
+  </body>
+</html>
