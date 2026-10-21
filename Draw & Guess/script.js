@@ -16,13 +16,14 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_DATABASE_URL",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.firebasestorage.app",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDbEtb9S2Mnqx02EQl2rwhonE1kg8XbmIw",
+  authDomain: "chefdesk-games.firebaseapp.com",
+  databaseURL: "https://chefdesk-games-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "chefdesk-games",
+  storageBucket: "chefdesk-games.firebasestorage.app",
+  messagingSenderId: "171693424148",
+  appId: "1:171693424148:web:daa340e425a9a692e97101",
+  measurementId: "G-GPGVNQCB4T"
 };
 
 const app = initializeApp(firebaseConfig);
