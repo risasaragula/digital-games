@@ -24,7 +24,14 @@ body {
   color: var(--green);
   font-family: "DM Sans", sans-serif;
 }
+body {
+  font-family: Arial, sans-serif;
+}
 
+h1,
+h2 {
+  font-family: Georgia, serif;
+}
 button {
   font: inherit;
   cursor: pointer;

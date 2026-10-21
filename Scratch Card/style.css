@@ -9,6 +9,14 @@
   box-sizing: border-box;
 }
 body {
+  font-family: Arial, sans-serif;
+}
+
+h1,
+h2 {
+  font-family: Georgia, serif;
+}
+body {
   margin: 0;
   background: var(--cream);
   color: var(--green);
