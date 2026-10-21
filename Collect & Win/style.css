@@ -448,3 +448,84 @@ a:focus-visible {
   }
 }
 
+.visit-section {
+  margin: 10px 0 35px;
+  padding: 27px 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--light-green);
+  text-align: center;
+}
+
+.visit-section h2 {
+  margin: 0 0 10px;
+  font-size: 28px;
+}
+
+.visit-description {
+  max-width: 440px;
+  margin: 0 auto 22px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.visit-form {
+  max-width: 420px;
+  margin: 0 auto;
+  display: grid;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  text-align: left;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid #d5dfd1;
+  border-radius: 10px;
+  outline: none;
+  background: var(--white);
+  color: var(--green);
+  font: inherit;
+  font-size: 13px;
+}
+
+.form-group input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(32, 75, 57, 0.1);
+}
+
+.visit-form .primary-button {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.verification-status {
+  min-height: 18px;
+  margin: 15px 0 0;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .visit-section {
+    padding: 23px 15px;
+  }
+
+  .visit-section h2 {
+    font-size: 25px;
+  }
+}

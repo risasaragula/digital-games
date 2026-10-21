@@ -143,6 +143,7 @@ const questionBank = [
 ];
 
 const totalQuestions = 5;
+const passingScore = 3;
 
 const quizCard = document.getElementById("quiz-card");
 const questionCount = document.getElementById("question-count");
@@ -153,6 +154,8 @@ let questions = [];
 let currentQuestionIndex = 0;
 let score = 0;
 let answered = false;
+let quizFinished = false;
+let quizWinId = "";
 
 function shuffleArray(items) {
   const shuffled = [...items];
@@ -169,11 +172,21 @@ function shuffleArray(items) {
   return shuffled;
 }
 
+function createQuizWinId() {
+  if (window.ChefDeskLoyalty) {
+    return ChefDeskLoyalty.createWinId();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 function startQuiz() {
   questions = shuffleArray(questionBank).slice(0, totalQuestions);
   currentQuestionIndex = 0;
   score = 0;
   answered = false;
+  quizFinished = false;
+  quizWinId = createQuizWinId();
 
   showQuestion();
 }
@@ -183,9 +196,13 @@ function showQuestion() {
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  questionCount.textContent = `QUESTION ${currentQuestionIndex + 1} OF ${totalQuestions}`;
+  questionCount.textContent =
+    `QUESTION ${currentQuestionIndex + 1} OF ${totalQuestions}`;
+
   scoreDisplay.textContent = `SCORE: ${score}`;
-  progressFill.style.width = `${(currentQuestionIndex / totalQuestions) * 100}%`;
+
+  progressFill.style.width =
+    `${(currentQuestionIndex / totalQuestions) * 100}%`;
 
   quizCard.innerHTML = "";
 
@@ -234,11 +251,13 @@ function showQuestion() {
   nextButton.type = "button";
   nextButton.className = "primary-button";
   nextButton.id = "next-question";
-  nextButton.textContent = currentQuestionIndex === totalQuestions - 1
-    ? "See Results →"
-    : "Next Question →";
-  nextButton.disabled = true;
 
+  nextButton.textContent =
+    currentQuestionIndex === totalQuestions - 1
+      ? "See Results →"
+      : "Next Question →";
+
+  nextButton.disabled = true;
   nextButton.addEventListener("click", nextQuestion);
 
   actions.appendChild(nextButton);
@@ -253,7 +272,7 @@ function showQuestion() {
 }
 
 function selectAnswer(selectedIndex) {
-  if (answered) {
+  if (answered || quizFinished) {
     return;
   }
 
@@ -294,7 +313,7 @@ function selectAnswer(selectedIndex) {
 }
 
 function nextQuestion() {
-  if (!answered) {
+  if (!answered || quizFinished) {
     return;
   }
 
@@ -308,7 +327,68 @@ function nextQuestion() {
   showQuestion();
 }
 
-function showResults() {
+async function awardQuizPoints() {
+  if (score < passingScore) {
+    return {
+      message: "Score at least 3 out of 5 to earn loyalty points.",
+      earned: false
+    };
+  }
+
+  if (!window.ChefDesk || !window.ChefDeskLoyalty) {
+    return {
+      message: "Loyalty system is unavailable. Please check the shared scripts.",
+      earned: false
+    };
+  }
+
+  try {
+    await ChefDesk.requireLogin();
+
+    const result = ChefDeskLoyalty.addWin(
+      "quiz",
+      quizWinId
+    );
+
+    if (!result.success) {
+      return {
+        message: result.reason === "duplicate"
+          ? "Points for this round have already been recorded."
+          : "Unable to save your points. Please try again.",
+        earned: false
+      };
+    }
+
+    if (result.earnedPoints > 0) {
+      return {
+        message:
+          `🎉 +${result.gamePoints} game points and ` +
+          `+${result.earnedPoints} loyalty points earned!`,
+        earned: true
+      };
+    }
+
+    return {
+      message:
+        "🎉 +10 game points! You've reached today's " +
+        "100 loyalty points limit. Come back tomorrow for more.",
+      earned: true
+    };
+  } catch (error) {
+    return {
+      message: "Unable to save your points. Please try again.",
+      earned: false
+    };
+  }
+}
+
+async function showResults() {
+  if (quizFinished) {
+    return;
+  }
+
+  quizFinished = true;
+
   questionCount.textContent = "QUIZ COMPLETED";
   scoreDisplay.textContent = `FINAL SCORE: ${score}`;
   progressFill.style.width = "100%";
@@ -318,25 +398,38 @@ function showResults() {
 
   if (score === 5) {
     heading = "You're a true foodie!";
-    message = "A perfect score! Your food knowledge is seriously impressive.";
+    message =
+      "A perfect score! Your food knowledge is seriously impressive.";
   } else if (score >= 3) {
     heading = "You've got great taste!";
-    message = "Well done! You know your way around the world of food.";
+    message =
+      "Well done! You know your way around the world of food.";
   } else {
     heading = "Keep exploring flavours!";
-    message = "Every great foodie starts somewhere. Try another round and discover more.";
+    message =
+      "Every great foodie starts somewhere. Try another round and discover more.";
   }
 
   quizCard.innerHTML = `
     <div class="result-card">
       <p class="result-label">YOUR FOODIE RESULTS</p>
       <h2>${heading}</h2>
-      <div class="result-score">${score}<span> / ${totalQuestions}</span></div>
+      <div class="result-score">
+        ${score}<span> / ${totalQuestions}</span>
+      </div>
       <p class="result-description">${message}</p>
+      <p class="result-description" id="loyalty-result">
+        ${score >= passingScore
+          ? "Saving your loyalty points..."
+          : "Score at least 3 out of 5 to earn loyalty points."}
+      </p>
       <div class="result-actions">
         <button type="button" class="primary-button" id="play-again">
           Play Again
         </button>
+        <a href="../My Rewards/index.html" class="secondary-button">
+          My Rewards
+        </a>
         <a href="../Dashboard/index.html" class="secondary-button">
           Back to Dashboard
         </a>
@@ -344,7 +437,25 @@ function showResults() {
     </div>
   `;
 
-  document.getElementById("play-again").addEventListener("click", startQuiz);
+  document.getElementById("play-again")
+    .addEventListener("click", startQuiz);
+
+  if (score >= passingScore) {
+    const result = await awardQuizPoints();
+    const loyaltyResult = document.getElementById("loyalty-result");
+
+    if (loyaltyResult) {
+      loyaltyResult.textContent = result.message;
+    }
+  }
 }
 
-startQuiz();
+async function initializeQuiz() {
+  if (window.ChefDesk) {
+    await ChefDesk.requireLogin();
+  }
+
+  startQuiz();
+}
+
+initializeQuiz();

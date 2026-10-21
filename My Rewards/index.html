@@ -10,12 +10,14 @@
     * {
       box-sizing: border-box;
     }
+
     body {
       margin: 0;
       background: #faf7ef;
       font-family: Arial, sans-serif;
       color: #204b39;
     }
+
     header {
       max-width: 850px;
       margin: auto;
@@ -24,26 +26,31 @@
       align-items: center;
       justify-content: space-between;
     }
+
     header a {
       text-decoration: none;
       color: #204b39;
       font-weight: bold;
     }
+
     main {
       max-width: 650px;
       margin: 35px auto;
-      padding: 0 20px;
+      padding: 0 20px 50px;
     }
+
     h1 {
       font-family: Georgia, serif;
       font-size: 40px;
       margin-bottom: 10px;
     }
+
     .subtitle {
       color: #77867b;
       font-size: 14px;
       line-height: 1.6;
     }
+
     .account-card {
       background: #204b39;
       color: white;
@@ -51,14 +58,149 @@
       padding: 25px;
       margin: 25px 0;
     }
+
     .account-card p {
       color: #d4e3d7;
       font-size: 12px;
     }
+
     .account-card h2 {
       font-size: 22px;
       margin: 12px 0;
     }
+
+    .logout {
+      border: 1px solid #ffffff88;
+      border-radius: 8px;
+      padding: 10px 15px;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+    }
+
+    .section-title {
+      font-family: Georgia, serif;
+      font-size: 25px;
+      margin: 32px 0 16px;
+    }
+
+    .wallet-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .wallet-card {
+      background: #fffdf7;
+      border: 1px solid #e5e7db;
+      border-radius: 15px;
+      padding: 20px;
+    }
+
+    .wallet-card span {
+      display: block;
+      color: #77867b;
+      font-size: 11px;
+      font-weight: bold;
+      line-height: 1.5;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .wallet-card strong {
+      display: block;
+      margin: 12px 0 6px;
+      font-family: Georgia, serif;
+      font-size: 32px;
+    }
+
+    .wallet-card p {
+      margin: 0;
+      color: #77867b;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .wallet-card.highlight {
+      background: #e9f1e8;
+      border-color: #d4e3d7;
+    }
+
+    .progress-section {
+      margin-top: 15px;
+      padding: 20px;
+      background: #fffdf7;
+      border: 1px solid #e5e7db;
+      border-radius: 15px;
+    }
+
+    .progress-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .progress-track {
+      height: 9px;
+      margin-top: 13px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #e5e7db;
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      border-radius: 20px;
+      background: #204b39;
+      transition: width 0.3s ease;
+    }
+
+    .progress-note {
+      margin: 12px 0 0;
+      color: #77867b;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .collection-card {
+      background: #fffdf7;
+      border: 1px solid #e5e7db;
+      border-radius: 15px;
+      padding: 20px;
+    }
+
+    .collection-stats {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .collection-stats strong {
+      display: block;
+      font-family: Georgia, serif;
+      font-size: 26px;
+      margin-bottom: 5px;
+    }
+
+    .collection-stats span {
+      color: #77867b;
+      font-size: 12px;
+    }
+
+    .collection-link {
+      display: inline-block;
+      margin-top: 15px;
+      color: #204b39;
+      font-size: 13px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
     .reward-card {
       background: #fffdf7;
       border: 1px solid #e5e7db;
@@ -66,14 +208,17 @@
       padding: 20px;
       margin: 13px 0;
     }
+
     .reward-card h3 {
       font-size: 22px;
       margin: 10px 0;
     }
+
     .reward-card p {
       color: #77867b;
       font-size: 13px;
     }
+
     .reward-tag {
       display: inline-block;
       background: #fff1e5;
@@ -83,6 +228,7 @@
       font-size: 11px;
       font-weight: bold;
     }
+
     .empty {
       padding: 40px 20px;
       text-align: center;
@@ -91,13 +237,23 @@
       color: #77867b;
       line-height: 1.7;
     }
-    .logout {
-      border: 1px solid #ffffff88;
-      border-radius: 8px;
-      padding: 10px 15px;
-      background: transparent;
-      color: white;
-      cursor: pointer;
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 34px;
+      }
+
+      .wallet-card {
+        padding: 16px;
+      }
+
+      .wallet-card strong {
+        font-size: 27px;
+      }
+
+      .collection-stats strong {
+        font-size: 23px;
+      }
     }
   </style>
 </head>
@@ -107,33 +263,113 @@
     <a href="../Dashboard/index.html">ChefDesk.</a>
     <a href="../Dashboard/index.html">← Games</a>
   </header>
+
   <main>
     <h1>My Rewards 🎁</h1>
-    <p class="subtitle">All your rewards, together in one place.</p>
+    <p class="subtitle">
+      Your coupons, loyalty points and food collections in one place.
+    </p>
+
     <div class="account-card">
+      <p>YOUR CHEFDESK ACCOUNT</p>
       <h2 id="customer-number"></h2>
       <button class="logout" id="logout-btn">Log Out</button>
     </div>
-    <h2>My Coupons</h2>
+
+    <h2 class="section-title">My Loyalty Wallet</h2>
+
+    <div class="wallet-grid">
+      <div class="wallet-card highlight">
+        <span>Redeemable Points</span>
+        <strong id="wallet-points">0</strong>
+        <p>Demo loyalty balance</p>
+      </div>
+
+      <div class="wallet-card">
+        <span>Total Game Points</span>
+        <strong id="game-points">0</strong>
+        <p>All eligible game wins</p>
+      </div>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-heading">
+        <span>Today's Loyalty Earnings</span>
+        <span id="daily-points">0 / 100</span>
+      </div>
+
+      <div class="progress-track">
+        <div class="progress-fill" id="daily-progress"></div>
+      </div>
+
+      <p class="progress-note" id="daily-note">
+        Earn up to 100 redeemable points per day.
+        You can continue playing after reaching the limit.
+      </p>
+    </div>
+
+    <h2 class="section-title">My Food Collection</h2>
+
+    <div class="collection-card">
+      <div class="collection-stats">
+        <div>
+          <strong id="collection-count">0 / 12</strong>
+          <span>Food Items Collected</span>
+        </div>
+
+        <div>
+          <strong id="collection-points">0</strong>
+          <span>Collection Points</span>
+        </div>
+      </div>
+
+      <div class="progress-track">
+        <div class="progress-fill" id="collection-progress"></div>
+      </div>
+
+      <a
+        href="../Collect & Win/index.html"
+        class="collection-link"
+      >
+        Continue Collect & Win →
+      </a>
+    </div>
+
+    <h2 class="section-title">My Coupons</h2>
     <div id="rewards-list"></div>
   </main>
+
   <script src="../shared/customer.js"></script>
+  <script src="../shared/loyalty.js"></script>
+
   <script>
     const customerNumber = document.getElementById("customer-number");
     const rewardsList = document.getElementById("rewards-list");
+
     function renderRewards() {
       const customer = ChefDesk.getCustomer();
-      if (!customer) return;
+
+      if (!customer) {
+        return;
+      }
+
       customerNumber.textContent = customer.displayPhone;
+
       const rewards = ChefDesk.getRewards();
       rewardsList.replaceChildren();
+
       if (rewards.length === 0) {
         const empty = document.createElement("div");
+
         empty.className = "empty";
-        empty.textContent = "🎟️ No rewards yet! Play a ChefDesk " + "game to collect your first demo reward.";
+        empty.textContent =
+          "🎟️ No rewards yet! Play a ChefDesk game " +
+          "to collect your first demo reward.";
+
         rewardsList.appendChild(empty);
         return;
       }
+
       [...rewards].reverse().forEach(reward => {
         const card = document.createElement("div");
         card.className = "reward-card";
@@ -146,27 +382,116 @@
         title.textContent = reward.prize;
 
         const game = document.createElement("p");
-        game.textContent =
-          "Won from: " + reward.game;
+        game.textContent = "Won from: " + reward.game;
 
         const date = document.createElement("p");
-        date.textContent =
-          new Date(reward.createdAt).toLocaleString();
+        date.textContent = new Date(
+          reward.createdAt
+        ).toLocaleString();
 
         card.append(tag, title, game, date);
         rewardsList.appendChild(card);
       });
     }
+
+    function renderLoyalty() {
+      if (!window.ChefDeskLoyalty) {
+        return;
+      }
+
+      const wallet = ChefDeskLoyalty.getWallet();
+      const todayPoints = ChefDeskLoyalty.getTodayPoints();
+      const dailyLimit = ChefDeskLoyalty.DAILY_LIMIT;
+
+      document.getElementById("wallet-points").textContent =
+        wallet.totalPoints;
+
+      document.getElementById("game-points").textContent =
+        wallet.gamePoints;
+
+      document.getElementById("daily-points").textContent =
+        `${todayPoints} / ${dailyLimit}`;
+
+      document.getElementById("daily-progress").style.width =
+        `${Math.min(100, (todayPoints / dailyLimit) * 100)}%`;
+
+      document.getElementById("daily-note").textContent =
+        todayPoints >= dailyLimit
+          ? "Daily limit reached! Keep playing for game points. Redeemable earning allowance resets tomorrow."
+          : `You can earn ${dailyLimit - todayPoints} more redeemable points today.`;
+    }
+
+    function renderCollection() {
+      const customer = ChefDesk.getCustomer();
+
+      if (!customer) {
+        return;
+      }
+
+      let customers = {};
+
+      try {
+        customers = JSON.parse(
+          localStorage.getItem("chefdesk_collect_win_v2") || "{}"
+        );
+      } catch (error) {
+        customers = {};
+      }
+
+      const saved = customers[customer.phone];
+      const collected = saved && Array.isArray(saved.collected)
+        ? [...new Set(saved.collected)]
+        : [];
+
+      const count = Math.min(collected.length, 12);
+
+      const collectionGroups = [
+        ["burger", "pizza", "fries", "hotdog"],
+        ["icecream", "donut", "cake", "cookie"],
+        ["apple", "banana", "strawberry", "watermelon"]
+      ];
+
+      const completed = collectionGroups.filter(group =>
+        group.every(item => collected.includes(item))
+      ).length;
+
+      const points = count * 10 + completed * 100;
+
+      document.getElementById("collection-count").textContent =
+        `${count} / 12`;
+
+      document.getElementById("collection-points").textContent =
+        points;
+
+      document.getElementById("collection-progress").style.width =
+        `${Math.round((count / 12) * 100)}%`;
+    }
+
+    function renderAll() {
+      renderRewards();
+      renderLoyalty();
+      renderCollection();
+    }
+
     async function initialize() {
       await ChefDesk.requireLogin();
-      renderRewards();
+      renderAll();
     }
+
     document.getElementById("logout-btn")
       .addEventListener("click", async () => {
         ChefDesk.logout();
         await ChefDesk.requireLogin();
-        renderRewards();
+        renderAll();
       });
+
+    window.addEventListener(
+      "chefdesk:points-updated",
+      renderLoyalty
+    );
+
+    window.addEventListener("pageshow", renderAll);
+
     initialize();
   </script>
 </body>
