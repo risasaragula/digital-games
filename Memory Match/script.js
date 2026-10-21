@@ -33,12 +33,15 @@ let hideTimeout = null;
 let locked = false;
 let gameStarted = false;
 let gameCompleted = false;
+let gameWinId = "";
+let rewardClaimed = false;
 
 function shuffle(items) {
   const array = [...items];
 
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
+
     [array[i], array[j]] = [array[j], array[i]];
   }
 
@@ -192,7 +195,62 @@ function flipCard(index) {
   }
 }
 
+function createGameWinId() {
+  if (window.ChefDeskLoyalty) {
+    return ChefDeskLoyalty.createWinId();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+async function awardMemoryPoints() {
+  if (rewardClaimed) return;
+
+  rewardClaimed = true;
+
+  const currentWinId = gameWinId;
+
+  if (!window.ChefDesk || !window.ChefDeskLoyalty) {
+    statusElement.textContent =
+      "Challenge completed! Loyalty system is unavailable.";
+    return;
+  }
+
+  try {
+    await ChefDesk.requireLogin();
+
+    const result = ChefDeskLoyalty.addWin(
+      "foodmatch",
+      currentWinId
+    );
+
+    if (gameWinId !== currentWinId) return;
+
+    if (!result.success) {
+      statusElement.textContent =
+        "Challenge completed! Unable to save loyalty points.";
+      return;
+    }
+
+    if (result.earnedPoints > 0) {
+      statusElement.textContent =
+        `🎉 +${result.gamePoints} game points and ` +
+        `+${result.earnedPoints} loyalty points earned!`;
+    } else {
+      statusElement.textContent =
+        "🎉 +10 game points! Today's 100 loyalty points limit reached.";
+    }
+  } catch (error) {
+    if (gameWinId === currentWinId) {
+      statusElement.textContent =
+        "Challenge completed! Unable to save loyalty points.";
+    }
+  }
+}
+
 function finishGame() {
+  if (gameCompleted) return;
+
   clearInterval(timer);
   timer = null;
   gameCompleted = true;
@@ -214,6 +272,8 @@ function finishGame() {
     `You completed the challenge in ${moves} moves and ${formatTime(seconds)}.`;
 
   completionPanel.classList.remove("hidden");
+
+  awardMemoryPoints();
 }
 
 function startGame() {
@@ -230,6 +290,8 @@ function startGame() {
   locked = false;
   gameStarted = false;
   gameCompleted = false;
+  gameWinId = createGameWinId();
+  rewardClaimed = false;
 
   completionPanel.classList.add("hidden");
   statusElement.textContent = "Find three identical food cards.";
@@ -244,4 +306,12 @@ document.getElementById("restartGame")
 document.getElementById("playAgain")
   .addEventListener("click", startGame);
 
-startGame();
+async function initializeGame() {
+  if (window.ChefDesk) {
+    await ChefDesk.requireLogin();
+  }
+
+  startGame();
+}
+
+initializeGame();
