@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#123c2c">
+  <title>Draw & Guess | ChefDesk</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a href="../Dashboard/index.html" class="brand">
+        <span class="brand-icon">✦</span>
+        <span>ChefDesk</span>
+      </a>
+      <a href="../Dashboard/index.html" class="back-link">All Games ↗</a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <span class="eyebrow">YOUR TABLE, YOUR PLAYGROUND</span>
+        <h1>Draw <em>&</em> Guess</h1>
+        <p>Sketch delicious clues. Guess with friends. Win the table!</p>
+      </section>
+
+      <section id="lobbyScreen" class="panel lobby-panel">
+        <div class="panel-heading">
+          <span class="step">01 / GET TOGETHER</span>
+          <h2>Let's play together.</h2>
+          <p>Create a room or join your friends using their room code.</p>
+        </div>
+
+        <label for="playerName">Your nickname</label>
+        <input
+          id="playerName"
+          type="text"
+          maxlength="18"
+          placeholder="e.g. Foodie King"
+          autocomplete="nickname"
+        >
+
+        <button id="createRoom" class="primary-button">
+          Create a Room <span>→</span>
+        </button>
+
+        <div class="or-divider"><span>or join friends</span></div>
+
+        <label for="roomCodeInput">Room code</label>
+        <input
+          id="roomCodeInput"
+          type="text"
+          maxlength="6"
+          placeholder="ABC123"
+          autocomplete="off"
+          autocapitalize="characters"
+        >
+
+        <button id="joinRoom" class="secondary-button">
+          Join Room
+        </button>
+      </section>
+
+      <section id="roomScreen" class="panel hidden">
+        <div class="room-heading">
+          <div>
+            <span class="step">02 / GAME ROOM</span>
+            <h2>Gather your foodies.</h2>
+          </div>
+          <button id="leaveRoom" class="text-button">Leave</button>
+        </div>
+
+        <div class="room-code-box">
+          <div>
+            <span class="muted">ROOM CODE</span>
+            <strong id="roomCodeDisplay">------</strong>
+          </div>
+          <button id="copyCode" class="small-button">Copy</button>
+        </div>
+
+        <p class="helper-text">
+          Share this code with friends. Everyone can join from their own phone.
+        </p>
+
+        <div class="section-title">
+          <h3>Players</h3>
+          <span id="playerCount">0 / 8</span>
+        </div>
+
+        <div id="roomPlayers" class="player-list"></div>
+
+        <div class="room-actions">
+          <button id="startGame" class="primary-button hidden">
+            Start Game <span>→</span>
+          </button>
+          <p id="waitingMessage" class="helper-text">
+            Waiting for the host to start...
+          </p>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="hidden">
+        <div class="game-top">
+          <div class="stat-box">
+            <span>ROUND</span>
+            <strong id="roundNumber">1 / 3</strong>
+          </div>
+          <div class="stat-box timer-box">
+            <span>TIME LEFT</span>
+            <strong id="roundTimer">60s</strong>
+          </div>
+          <div class="stat-box">
+            <span>YOUR SCORE</span>
+            <strong id="myScore">0</strong>
+          </div>
+        </div>
+
+        <div class="panel game-panel">
+          <div class="drawing-heading">
+            <div>
+              <span class="step" id="drawerLabel">DRAWING NOW</span>
+              <h2 id="drawingTitle">Get ready!</h2>
+            </div>
+            <span id="wordLength" class="word-hint"></span>
+          </div>
+
+          <div id="secretWordBox" class="secret-word hidden">
+            Your word: <strong id="secretWord"></strong>
+          </div>
+
+          <div class="canvas-wrap">
+            <canvas
+              id="drawingCanvas"
+              width="800"
+              height="600"
+              aria-label="Shared drawing canvas"
+            ></canvas>
+            <div id="canvasOverlay" class="canvas-overlay">
+              Waiting for the artist...
+            </div>
+          </div>
+
+          <div id="drawingTools" class="drawing-tools hidden">
+            <div class="color-tools">
+              <button class="color-dot active" data-color="#203a2c" style="--dot:#203a2c" aria-label="Dark green"></button>
+              <button class="color-dot" data-color="#e9784d" style="--dot:#e9784d" aria-label="Orange"></button>
+              <button class="color-dot" data-color="#e5b947" style="--dot:#e5b947" aria-label="Yellow"></button>
+              <button class="color-dot" data-color="#568cba" style="--dot:#568cba" aria-label="Blue"></button>
+              <button class="color-dot" data-color="#d46b95" style="--dot:#d46b95" aria-label="Pink"></button>
+            </div>
+            <div class="tool-actions">
+              <select id="brushSize" aria-label="Brush size">
+                <option value="4">Small</option>
+                <option value="9" selected>Medium</option>
+                <option value="18">Large</option>
+              </select>
+              <button id="eraserButton" class="tool-button">Eraser</button>
+              <button id="clearCanvas" class="tool-button">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="game-bottom">
+          <section class="panel guesses-panel">
+            <div class="section-title">
+              <h3>Live Guesses</h3>
+              <span>💬</span>
+            </div>
+            <div id="guessMessages" class="guess-messages"></div>
+            <form id="guessForm" class="guess-form">
+              <input
+                id="guessInput"
+                type="text"
+                maxlength="40"
+                placeholder="What's the food?"
+                autocomplete="off"
+              >
+              <button id="sendGuess" type="submit">Send</button>
+            </form>
+          </section>
+
+          <section class="panel leaderboard-panel">
+            <div class="section-title">
+              <h3>Leaderboard</h3>
+              <span>🏆</span>
+            </div>
+            <div id="liveLeaderboard"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="resultsScreen" class="panel results-panel hidden">
+        <span class="step">03 / THE RESULTS</span>
+        <div class="trophy">🏆</div>
+        <h2 id="resultsTitle">What a round!</h2>
+        <p id="resultsDescription"></p>
+        <div id="resultsLeaderboard"></div>
+        <button id="nextRound" class="primary-button hidden">
+          Next Round <span>→</span>
+        </button>
+        <button id="backToLobby" class="secondary-button">
+          Leave Game
+        </button>
+      </section>
+
+      <p id="globalStatus" class="global-status" role="status"></p>
+    </main>
+
+    <footer>Good Food. Great Games. © ChefDesk</footer>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
