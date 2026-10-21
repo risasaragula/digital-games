@@ -737,3 +737,12 @@ a.game-card:hover .game-emoji {
     font-size: 40px;
   }
 }
+
+.game-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 18px 35px rgba(32, 75, 57, 0.12);
+}
