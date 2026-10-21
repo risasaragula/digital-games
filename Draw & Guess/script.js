@@ -61,7 +61,6 @@ let unsubscribeRoom = null;
 let unsubscribeStrokes = null;
 let unsubscribeMessages = null;
 let localRoundKey = "";
-let lastRoomStatus = "";
 let drawing = false;
 let lastPoint = null;
 let lastDrawTime = 0;
@@ -87,9 +86,7 @@ function safeName(name) {
 }
 
 function normalizeAnswer(value) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
 function randomCode() {
@@ -113,8 +110,8 @@ function getPlayers(room = roomData) {
 }
 
 function getSortedPlayers(room = roomData) {
-  return getPlayers(room).sort((a, b) =>
-    (b.score || 0) - (a.score || 0)
+  return getPlayers(room).sort(
+    (a, b) => (b.score || 0) - (a.score || 0)
   );
 }
 
@@ -136,10 +133,6 @@ function getRoomRef() {
 
 function getRoundKey(room = roomData) {
   return `${room?.game?.round || 0}-${room?.game?.startedAt || 0}`;
-}
-
-function setButtonBusy(button, busy) {
-  button.disabled = busy;
 }
 
 async function ensureLogin() {
@@ -174,7 +167,7 @@ async function createRoom() {
   const button = $("createRoom");
 
   try {
-    setButtonBusy(button, true);
+    button.disabled = true;
     setStatus("");
 
     const name = getNickname();
@@ -184,6 +177,7 @@ async function createRoom() {
 
     for (let attempt = 0; attempt < 10; attempt++) {
       const candidate = randomCode();
+
       const snapshot = await get(
         ref(database, `drawGuessRooms/${candidate}`)
       );
@@ -195,7 +189,7 @@ async function createRoom() {
     }
 
     if (!code) {
-      throw new Error("Couldn't generate a room code. Try again.");
+      throw new Error("Couldn't generate a room code.");
     }
 
     const newRoom = {
@@ -221,7 +215,7 @@ async function createRoom() {
   } catch (error) {
     setStatus(error.message);
   } finally {
-    setButtonBusy(button, false);
+    button.disabled = false;
   }
 }
 
@@ -229,13 +223,11 @@ async function joinRoom() {
   const button = $("joinRoom");
 
   try {
-    setButtonBusy(button, true);
+    button.disabled = true;
     setStatus("");
 
     const name = getNickname();
-    const code = $("roomCodeInput").value
-      .trim()
-      .toUpperCase();
+    const code = $("roomCodeInput").value.trim().toUpperCase();
 
     if (!/^[A-Z2-9]{6}$/.test(code)) {
       throw new Error("Enter a valid 6-character room code.");
@@ -243,46 +235,55 @@ async function joinRoom() {
 
     await ensureLogin();
 
-    let failure = "Unable to join this room.";
+    const roomReference = ref(database, `drawGuessRooms/${code}`);
+    const snapshot = await get(roomReference);
+
+    if (!snapshot.exists()) {
+      throw new Error("Room not found. Check the room code.");
+    }
+
+    const existingRoom = snapshot.val();
+
+    if (existingRoom.status !== "waiting") {
+      throw new Error("This game has already started.");
+    }
+
+    if (
+      !existingRoom.players?.[uid] &&
+      Object.keys(existingRoom.players || {}).length >= MAX_PLAYERS
+    ) {
+      throw new Error("This room is full.");
+    }
 
     const result = await runTransaction(
-      ref(database, `drawGuessRooms/${code}`),
+      roomReference,
       room => {
-        if (!room) {
-          failure = "Room not found.";
-          return;
-        }
-
-        if (room.status !== "waiting") {
-          failure = "This game has already started.";
-          return;
-        }
-
-        if (
-          !room.players?.[uid] &&
-          Object.keys(room.players || {}).length >= MAX_PLAYERS
-        ) {
-          failure = "This room is full.";
-          return;
-        }
+        if (!room || room.status !== "waiting") return;
 
         room.players ||= {};
-        room.players[uid] ||= createPlayer(name);
 
+        if (
+          !room.players[uid] &&
+          Object.keys(room.players).length >= MAX_PLAYERS
+        ) {
+          return;
+        }
+
+        room.players[uid] ||= createPlayer(name);
         return room;
       },
       { applyLocally: false }
     );
 
     if (!result.committed) {
-      throw new Error(failure);
+      throw new Error("Unable to join. Room may be full or closed.");
     }
 
     connectRoom(code);
   } catch (error) {
     setStatus(error.message);
   } finally {
-    setButtonBusy(button, false);
+    button.disabled = false;
   }
 }
 
@@ -302,7 +303,6 @@ function connectRoom(code) {
   roomCode = code;
   roomData = null;
   localRoundKey = "";
-  lastRoomStatus = "";
   lastTimer = -1;
 
   $("roomCodeDisplay").textContent = code;
@@ -332,20 +332,19 @@ function connectRoom(code) {
 function renderRoom() {
   if (!roomData) return;
 
-  const status = roomData.status;
-
-  if (status === "waiting") {
+  if (roomData.status === "waiting") {
     showScreen(roomScreen);
     renderWaitingRoom();
-  } else if (status === "playing") {
+  } else if (roomData.status === "playing") {
     showScreen(gameScreen);
     renderGame();
-  } else if (status === "roundEnd" || status === "finished") {
+  } else if (
+    roomData.status === "roundEnd" ||
+    roomData.status === "finished"
+  ) {
     showScreen(resultsScreen);
     renderResults();
   }
-
-  lastRoomStatus = status;
 }
 
 function renderWaitingRoom() {
@@ -388,12 +387,10 @@ function getDrawerForRound(room, round) {
 }
 
 function makeRound(room, round) {
-  const drawerId = getDrawerForRound(room, round);
-
   return {
     ...room.game,
     round,
-    drawerId,
+    drawerId: getDrawerForRound(room, round),
     word: randomWord(),
     startedAt: Date.now(),
     duration: ROUND_SECONDS,
@@ -478,14 +475,12 @@ function subscribeRound() {
   $("guessMessages").replaceChildren();
 
   const round = roomData.game.round;
-  const drawingPath =
-    `drawGuessData/${roomCode}/rounds/${round}/strokes`;
-
-  const messagePath =
-    `drawGuessData/${roomCode}/rounds/${round}/messages`;
 
   unsubscribeStrokes = onValue(
-    ref(database, drawingPath),
+    ref(
+      database,
+      `drawGuessData/${roomCode}/rounds/${round}/strokes`
+    ),
     snapshot => {
       clearDrawing();
 
@@ -503,7 +498,10 @@ function subscribeRound() {
   );
 
   unsubscribeMessages = onValue(
-    ref(database, messagePath),
+    ref(
+      database,
+      `drawGuessData/${roomCode}/rounds/${round}/messages`
+    ),
     snapshot => {
       const messages = snapshot.val() || {};
       renderMessages(Object.values(messages));
@@ -543,7 +541,11 @@ function renderGame() {
 
   $("drawingTools").classList.toggle("hidden", !drawerMode);
 
-  $("canvasOverlay").classList.toggle("hidden", !guessed || drawerMode);
+  $("canvasOverlay").classList.toggle(
+    "hidden",
+    !guessed || drawerMode
+  );
+
   $("canvasOverlay").textContent = guessed
     ? "Correct guess! Waiting for the round to finish."
     : "";
@@ -609,8 +611,14 @@ function getPoint(event) {
   const rect = canvas.getBoundingClientRect();
 
   return {
-    x: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)),
-    y: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height))
+    x: Math.max(
+      0,
+      Math.min(1, (event.clientX - rect.left) / rect.width)
+    ),
+    y: Math.max(
+      0,
+      Math.min(1, (event.clientY - rect.top) / rect.height)
+    )
   };
 }
 
@@ -709,6 +717,7 @@ async function sendGuess(event) {
 
   const round = roomData.game.round;
   const roundStart = roomData.game.startedAt;
+
   const correct =
     normalizeAnswer(guess) ===
     normalizeAnswer(roomData.game.word);
@@ -741,7 +750,9 @@ async function sendGuess(event) {
           const correctCount =
             Object.keys(room.game.guessed).length;
 
-          const guessPoints = Math.max(40, 100 - correctCount * 20);
+          const guessPoints =
+            Math.max(40, 100 - correctCount * 20);
+
           const drawerId = room.game.drawerId;
 
           room.game.guessed[uid] = true;
@@ -812,7 +823,8 @@ async function finishRound() {
         const eligibleGuessers = getPlayers(room)
           .filter(player => player.id !== room.game.drawerId);
 
-        const everyoneGuessed = eligibleGuessers.length > 0 &&
+        const everyoneGuessed =
+          eligibleGuessers.length > 0 &&
           eligibleGuessers.every(
             player => room.game.guessed?.[player.id]
           );
@@ -857,7 +869,8 @@ function updateTimer() {
   const eligible = getPlayers()
     .filter(player => player.id !== game.drawerId);
 
-  const allGuessed = eligible.length > 0 &&
+  const allGuessed =
+    eligible.length > 0 &&
     eligible.every(player => game.guessed?.[player.id]);
 
   if (remaining === 0 || allGuessed) {
@@ -886,8 +899,7 @@ function renderResults() {
     !isHost() || finished
   );
 
-  $("nextRound").textContent =
-    "Next Round →";
+  $("nextRound").textContent = "Next Round →";
 }
 
 async function nextRound() {
@@ -949,9 +961,7 @@ async function leaveRoom() {
 
     if (room.hostId === uid) {
       await remove(roomReference);
-      await remove(
-        ref(database, `drawGuessData/${code}`)
-      );
+      await remove(ref(database, `drawGuessData/${code}`));
     } else {
       await runTransaction(
         roomReference,
@@ -1037,7 +1047,7 @@ async function initialize() {
     setStatus("");
   } catch (error) {
     setStatus(
-      "Firebase connection failed. Check configuration and Anonymous Authentication."
+      "Firebase connection failed. Check your Firebase settings."
     );
   }
 }
