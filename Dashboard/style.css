@@ -747,3 +747,7 @@ a.game-card:hover .game-emoji {
   transform: translateY(-8px);
   box-shadow: 0 18px 35px rgba(32, 75, 57, 0.12);
 }
+
+.game-card.drawguess .game-visual {
+  background: #f8dfd7;
+}
