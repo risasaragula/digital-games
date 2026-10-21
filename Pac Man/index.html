@@ -1,8 +1,154 @@
+
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Pac Man | ChefDesk</title>
-    </head>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man | ChefDesk</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+  </head>
+
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="../Dashboard/index.html" class="brand">
+          ChefDesk<span>.</span>
+        </a>
+
+        <a href="../Dashboard/index.html" class="back-link">
+          ← Dashboard
+        </a>
+      </div>
+    </header>
+
+    <main class="page-container">
+      <div class="page-heading">
+        <p class="eyebrow">CHEFDESK DIGITAL GAMES</p>
+        <h1>Pac-Man<span>.</span></h1>
+        <p class="subtitle">
+          Chase the bites. Dodge the ghosts. Beat your best.
+        </p>
+      </div>
+
+      <section class="game-panel" aria-label="Pac-Man game">
+        <div class="panel-intro">
+          <p class="section-label">THE ARCADE CHALLENGE</p>
+          <h2>Ready for a bite?</h2>
+          <p class="description">
+            Collect every food pellet, avoid the ghosts and grab
+            power pellets to turn the tables.
+          </p>
+        </div>
+
+        <div class="game-stats">
+          <div class="stat">
+            <span>SCORE</span>
+            <strong id="score">0</strong>
+          </div>
+
+          <div class="stat">
+            <span>BEST</span>
+            <strong id="bestScore">0</strong>
+          </div>
+
+          <div class="stat">
+            <span>LIVES</span>
+            <strong id="lives">3</strong>
+          </div>
+
+          <div class="stat">
+            <span>LEVEL</span>
+            <strong id="level">1</strong>
+          </div>
+        </div>
+
+        <p id="status" class="status" role="status" aria-live="polite">
+          Press Start Game to begin.
+        </p>
+
+        <div class="board-container">
+          <canvas
+            id="gameCanvas"
+            width="504"
+            height="504"
+            tabindex="0"
+            aria-label="Pac-Man maze game"
+          ></canvas>
+        </div>
+
+        <div class="game-actions">
+          <button id="startButton" class="primary-button" type="button">
+            Start Game
+          </button>
+
+          <button id="pauseButton" class="secondary-button" type="button" disabled>
+            Pause
+          </button>
+
+          <button id="restartButton" class="secondary-button" type="button">
+            Restart
+          </button>
+        </div>
+
+        <div class="controls-section">
+          <p class="controls-label">MOVE PAC-MAN</p>
+
+          <div class="direction-controls">
+            <button
+              class="direction-button up"
+              type="button"
+              data-direction="up"
+              aria-label="Move up"
+            >↑</button>
+
+            <button
+              class="direction-button left"
+              type="button"
+              data-direction="left"
+              aria-label="Move left"
+            >←</button>
+
+            <button
+              class="direction-button down"
+              type="button"
+              data-direction="down"
+              aria-label="Move down"
+            >↓</button>
+
+            <button
+              class="direction-button right"
+              type="button"
+              data-direction="right"
+              aria-label="Move right"
+            >→</button>
+          </div>
+
+          <p class="control-hint">
+            Use arrow keys or WASD on desktop. Use the buttons or swipe
+            on mobile. Press Space to pause or resume.
+          </p>
+        </div>
+
+        <div id="completionPanel" class="completion hidden" aria-live="polite">
+          <p class="section-label" id="completionLabel">GAME OVER</p>
+          <h2 id="completionTitle">Nice try!</h2>
+          <p id="completionText"></p>
+
+          <button id="playAgain" class="primary-button" type="button">
+            Play Again
+          </button>
+        </div>
+
+        <p class="footnote">
+          Unlimited gameplay. Restaurant rewards are separate and
+          subject to eligibility.
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      ChefDesk Digital Games
+    </footer>
+  </body>
 </html>
