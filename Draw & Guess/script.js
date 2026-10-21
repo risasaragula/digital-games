@@ -239,45 +239,25 @@ async function joinRoom() {
     const snapshot = await get(roomReference);
 
     if (!snapshot.exists()) {
-      throw new Error("Room not found. Check the room code.");
+      throw new Error("Room not found. Check the code.");
     }
 
-    const existingRoom = snapshot.val();
+    const room = snapshot.val();
 
-    if (existingRoom.status !== "waiting") {
+    if (room.status !== "waiting") {
       throw new Error("This game has already started.");
     }
 
-    if (
-      !existingRoom.players?.[uid] &&
-      Object.keys(existingRoom.players || {}).length >= MAX_PLAYERS
-    ) {
-      throw new Error("This room is full.");
+    const players = Object.keys(room.players || {});
+
+    if (!room.players?.[uid] && players.length >= MAX_PLAYERS) {
+      throw new Error("Room is full.");
     }
 
-    const result = await runTransaction(
-      roomReference,
-      room => {
-        if (!room || room.status !== "waiting") return;
-
-        room.players ||= {};
-
-        if (
-          !room.players[uid] &&
-          Object.keys(room.players).length >= MAX_PLAYERS
-        ) {
-          return;
-        }
-
-        room.players[uid] ||= createPlayer(name);
-        return room;
-      },
-      { applyLocally: false }
+    await set(
+      ref(database, `drawGuessRooms/${code}/players/${uid}`),
+      room.players?.[uid] || createPlayer(name)
     );
-
-    if (!result.committed) {
-      throw new Error("Unable to join. Room may be full or closed.");
-    }
 
     connectRoom(code);
   } catch (error) {
@@ -795,6 +775,7 @@ async function sendGuess(event) {
   }
 }
 
+
 async function finishRound() {
   if (roundTransitioning || !isPlaying()) return;
 
@@ -804,7 +785,7 @@ async function finishRound() {
   const startedAt = roomData.game.startedAt;
 
   try {
-    await runTransaction(
+    const result = await runTransaction(
       getRoomRef(),
       room => {
         if (!room || room.status !== "playing") return;
@@ -842,12 +823,17 @@ async function finishRound() {
       },
       { applyLocally: false }
     );
+
+    if (!result.committed && isPlaying()) {
+      setStatus("Round transition failed. Please check the connection.");
+    }
   } catch (error) {
     setStatus(error.message);
   } finally {
     roundTransitioning = false;
   }
 }
+
 
 function updateTimer() {
   if (!isPlaying()) return;
@@ -1046,9 +1032,7 @@ async function initialize() {
     await ensureLogin();
     setStatus("");
   } catch (error) {
-    setStatus(
-      "Firebase connection failed. Check your Firebase settings."
-    );
+    setStatus("Firebase connection failed. Check your settings.");
   }
 }
 
