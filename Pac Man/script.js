@@ -98,6 +98,11 @@ let accumulator = 0;
 let animationId = null;
 let lastStatus = "";
 
+let gameSessionId = "";
+let rewardedLevels = new Set();
+let loyaltyCustomer = null;
+let loyaltyReady = false;
+
 try {
   bestScore = Number(localStorage.getItem("chefdesk_pacman_best")) || 0;
 } catch (error) {
@@ -108,6 +113,70 @@ function setStatus(message) {
   if (lastStatus !== message) {
     statusElement.textContent = message;
     lastStatus = message;
+  }
+}
+
+function createGameSessionId() {
+  if (window.ChefDeskLoyalty) {
+    return ChefDeskLoyalty.createWinId();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+async function initializeLoyalty() {
+  if (!window.ChefDesk || !window.ChefDeskLoyalty) {
+    loyaltyReady = false;
+    return;
+  }
+
+  try {
+    loyaltyCustomer = await ChefDesk.requireLogin();
+    loyaltyReady = Boolean(loyaltyCustomer);
+  } catch (error) {
+    loyaltyReady = false;
+  }
+}
+
+function awardLevelPoints(completedLevel) {
+  if (rewardedLevels.has(completedLevel)) {
+    return;
+  }
+
+  rewardedLevels.add(completedLevel);
+
+  if (!loyaltyReady || !window.ChefDeskLoyalty) {
+    setStatus(
+      `Level ${completedLevel} cleared! Loyalty points unavailable.`
+    );
+    return;
+  }
+
+  const winId = `${gameSessionId}-level-${completedLevel}`;
+
+  const result = ChefDeskLoyalty.addWin(
+    "pacman",
+    winId
+  );
+
+  if (!result.success) {
+    setStatus(
+      `Level ${completedLevel} cleared! Unable to save loyalty points.`
+    );
+    return;
+  }
+
+  if (result.earnedPoints > 0) {
+    setStatus(
+      `🎉 Level ${completedLevel} cleared! ` +
+      `+${result.gamePoints} game points and ` +
+      `+${result.earnedPoints} loyalty points!`
+    );
+  } else {
+    setStatus(
+      `🎉 Level ${completedLevel} cleared! ` +
+      `+10 game points. Daily loyalty limit reached.`
+    );
   }
 }
 
@@ -180,7 +249,10 @@ function saveBestScore() {
     bestScore = score;
 
     try {
-      localStorage.setItem("chefdesk_pacman_best", String(bestScore));
+      localStorage.setItem(
+        "chefdesk_pacman_best",
+        String(bestScore)
+      );
     } catch (error) {
       bestScore = score;
     }
@@ -194,11 +266,19 @@ function addScore(points) {
 }
 
 function startNewGame() {
+  if (!loyaltyReady && window.ChefDesk && window.ChefDeskLoyalty) {
+    setStatus("Please sign in before playing.");
+    return;
+  }
+
   score = 0;
   lives = 3;
   level = 1;
   gameClock = 0;
   accumulator = 0;
+
+  gameSessionId = createGameSessionId();
+  rewardedLevels = new Set();
 
   createMaze();
   createCharacters();
@@ -218,6 +298,10 @@ function startNewGame() {
 }
 
 function startNextLevel() {
+  const completedLevel = level;
+
+  awardLevelPoints(completedLevel);
+
   level++;
   gameClock = 0;
   accumulator = 0;
@@ -226,7 +310,12 @@ function startNextLevel() {
   createCharacters();
   updateStats();
 
-  setStatus(`Level ${level}! The ghosts are getting faster.`);
+  if (
+    !statusElement.textContent.includes("loyalty") &&
+    !statusElement.textContent.includes("game points")
+  ) {
+    setStatus(`Level ${level}! The ghosts are getting faster.`);
+  }
 }
 
 function resetPositions() {
@@ -244,9 +333,11 @@ function finishGame() {
   completionLabel.textContent = "GAME OVER";
   completionTitle.textContent = "Nice run!";
   completionText.textContent =
-    `You scored ${score} points and reached level ${level}. Ready for another round?`;
+    `You scored ${score} points and reached level ${level}. ` +
+    `Ready for another round?`;
 
   completionPanel.classList.remove("hidden");
+
   setStatus("Game over. Try again and beat your best score.");
 }
 
@@ -353,7 +444,9 @@ function chooseGhostDirection(ghost) {
   const randomMove = Math.random() < 0.28;
 
   if (randomMove) {
-    return choices[Math.floor(Math.random() * choices.length)];
+    return choices[
+      Math.floor(Math.random() * choices.length)
+    ];
   }
 
   const frightened = isPowered();
@@ -404,7 +497,10 @@ function moveGhosts() {
 
 function checkCollisions() {
   for (const ghost of ghosts) {
-    if (ghost.x !== player.x || ghost.y !== player.y) {
+    if (
+      ghost.x !== player.x ||
+      ghost.y !== player.y
+    ) {
       continue;
     }
 
@@ -424,7 +520,10 @@ function checkCollisions() {
         finishGame();
       } else {
         resetPositions();
-        setStatus(`Watch out! ${lives} lives remaining.`);
+
+        setStatus(
+          `Watch out! ${lives} lives remaining.`
+        );
       }
 
       return true;
@@ -439,7 +538,11 @@ function updateGame() {
     return;
   }
 
-  const previousPlayer = { x: player.x, y: player.y };
+  const previousPlayer = {
+    x: player.x,
+    y: player.y
+  };
+
   const previousGhosts = ghosts.map(ghost => ({
     x: ghost.x,
     y: ghost.y
@@ -486,7 +589,10 @@ function updateGame() {
           finishGame();
         } else {
           resetPositions();
-          setStatus(`Watch out! ${lives} lives remaining.`);
+
+          setStatus(
+            `Watch out! ${lives} lives remaining.`
+          );
         }
 
         return;
@@ -496,7 +602,10 @@ function updateGame() {
 
   if (!isPowered() && powerUntil !== 0) {
     powerUntil = 0;
-    setStatus("Power mode ended. Avoid the ghosts!");
+
+    setStatus(
+      "Power mode ended. Avoid the ghosts!"
+    );
   }
 }
 
@@ -514,7 +623,12 @@ function drawWalls() {
       ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
 
       ctx.fillStyle = "#32684d";
-      ctx.fillRect(px + 3, py + 3, TILE_SIZE - 6, TILE_SIZE - 6);
+      ctx.fillRect(
+        px + 3,
+        py + 3,
+        TILE_SIZE - 6,
+        TILE_SIZE - 6
+      );
     }
   }
 }
@@ -528,8 +642,11 @@ function drawPellets() {
         continue;
       }
 
-      const centerX = x * TILE_SIZE + TILE_SIZE / 2;
-      const centerY = y * TILE_SIZE + TILE_SIZE / 2;
+      const centerX =
+        x * TILE_SIZE + TILE_SIZE / 2;
+
+      const centerY =
+        y * TILE_SIZE + TILE_SIZE / 2;
 
       ctx.beginPath();
 
@@ -551,8 +668,11 @@ function drawPellets() {
 }
 
 function drawPlayer() {
-  const centerX = player.x * TILE_SIZE + TILE_SIZE / 2;
-  const centerY = player.y * TILE_SIZE + TILE_SIZE / 2;
+  const centerX =
+    player.x * TILE_SIZE + TILE_SIZE / 2;
+
+  const centerY =
+    player.y * TILE_SIZE + TILE_SIZE / 2;
 
   const rotations = {
     right: 0,
@@ -565,7 +685,6 @@ function drawPlayer() {
   const mouth = player.mouthOpen ? 0.28 : 0.07;
 
   ctx.beginPath();
-
   ctx.moveTo(centerX, centerY);
 
   ctx.arc(
@@ -582,8 +701,12 @@ function drawPlayer() {
 }
 
 function drawGhost(ghost) {
-  const x = ghost.x * TILE_SIZE + TILE_SIZE / 2;
-  const y = ghost.y * TILE_SIZE + TILE_SIZE / 2;
+  const x =
+    ghost.x * TILE_SIZE + TILE_SIZE / 2;
+
+  const y =
+    ghost.y * TILE_SIZE + TILE_SIZE / 2;
+
   const radius = TILE_SIZE * 0.39;
 
   ctx.beginPath();
@@ -596,7 +719,10 @@ function drawGhost(ghost) {
     0
   );
 
-  ctx.lineTo(x + radius, y + radius);
+  ctx.lineTo(
+    x + radius,
+    y + radius
+  );
 
   for (let i = 2; i >= -2; i--) {
     ctx.lineTo(
@@ -614,40 +740,94 @@ function drawGhost(ghost) {
   ctx.fill();
 
   ctx.fillStyle = "white";
-
   ctx.beginPath();
-  ctx.arc(x - 4, y - 2, 3.2, 0, Math.PI * 2);
-  ctx.arc(x + 4, y - 2, 3.2, 0, Math.PI * 2);
+
+  ctx.arc(
+    x - 4,
+    y - 2,
+    3.2,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.arc(
+    x + 4,
+    y - 2,
+    3.2,
+    0,
+    Math.PI * 2
+  );
+
   ctx.fill();
 
   ctx.fillStyle = "#163b2c";
-
   ctx.beginPath();
-  ctx.arc(x - 4, y - 2, 1.5, 0, Math.PI * 2);
-  ctx.arc(x + 4, y - 2, 1.5, 0, Math.PI * 2);
+
+  ctx.arc(
+    x - 4,
+    y - 2,
+    1.5,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.arc(
+    x + 4,
+    y - 2,
+    1.5,
+    0,
+    Math.PI * 2
+  );
+
   ctx.fill();
 }
 
 function drawOverlay(title, subtitle) {
   ctx.fillStyle = "rgba(10, 30, 22, 0.78)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
 
   ctx.textAlign = "center";
 
   ctx.fillStyle = "#fffdf8";
   ctx.font = "bold 31px Georgia";
-  ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 12);
+
+  ctx.fillText(
+    title,
+    canvas.width / 2,
+    canvas.height / 2 - 12
+  );
 
   ctx.font = "14px Arial";
   ctx.fillStyle = "#e9d9ad";
-  ctx.fillText(subtitle, canvas.width / 2, canvas.height / 2 + 23);
+
+  ctx.fillText(
+    subtitle,
+    canvas.width / 2,
+    canvas.height / 2 + 23
+  );
 }
 
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
 
   ctx.fillStyle = "#10281f";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
 
   drawWalls();
   drawPellets();
@@ -659,11 +839,20 @@ function draw() {
   ghosts.forEach(drawGhost);
 
   if (gameState === "ready") {
-    drawOverlay("PAC-MAN", "Press Start Game to play");
+    drawOverlay(
+      "PAC-MAN",
+      "Press Start Game to play"
+    );
   } else if (gameState === "paused") {
-    drawOverlay("PAUSED", "Press Resume or Space");
+    drawOverlay(
+      "PAUSED",
+      "Press Resume or Space"
+    );
   } else if (gameState === "over") {
-    drawOverlay("GAME OVER", `Final score: ${score}`);
+    drawOverlay(
+      "GAME OVER",
+      `Final score: ${score}`
+    );
   }
 }
 
@@ -672,16 +861,26 @@ function gameLoop(timestamp) {
     lastFrame = timestamp;
   }
 
-  const delta = Math.min(timestamp - lastFrame, 100);
+  const delta = Math.min(
+    timestamp - lastFrame,
+    100
+  );
+
   lastFrame = timestamp;
 
   if (gameState === "playing") {
     gameClock += delta;
     accumulator += delta;
 
-    const stepDuration = Math.max(105, 230 - (level - 1) * 13);
+    const stepDuration = Math.max(
+      105,
+      230 - (level - 1) * 13
+    );
 
-    while (accumulator >= stepDuration && gameState === "playing") {
+    while (
+      accumulator >= stepDuration &&
+      gameState === "playing"
+    ) {
       updateGame();
       accumulator -= stepDuration;
     }
@@ -697,18 +896,38 @@ startButton.addEventListener("click", () => {
   startNewGame();
 });
 
-pauseButton.addEventListener("click", togglePause);
-restartButton.addEventListener("click", startNewGame);
-playAgainButton.addEventListener("click", startNewGame);
+pauseButton.addEventListener(
+  "click",
+  togglePause
+);
 
-document.querySelectorAll("[data-direction]").forEach(button => {
-  button.addEventListener("click", () => {
-    setDirection(button.dataset.direction);
-    canvas.focus();
+restartButton.addEventListener(
+  "click",
+  startNewGame
+);
+
+playAgainButton.addEventListener(
+  "click",
+  startNewGame
+);
+
+document.querySelectorAll("[data-direction]")
+  .forEach(button => {
+    button.addEventListener("click", () => {
+      setDirection(button.dataset.direction);
+      canvas.focus();
+    });
   });
-});
 
 document.addEventListener("keydown", event => {
+  if (
+    ["INPUT", "SELECT", "TEXTAREA"].includes(
+      document.activeElement.tagName
+    )
+  ) {
+    return;
+  }
+
   const keyDirections = {
     ArrowUp: "up",
     ArrowDown: "down",
@@ -738,33 +957,73 @@ document.addEventListener("keydown", event => {
 let touchStartX = 0;
 let touchStartY = 0;
 
-canvas.addEventListener("touchstart", event => {
-  const touch = event.changedTouches[0];
+canvas.addEventListener(
+  "touchstart",
+  event => {
+    const touch = event.changedTouches[0];
 
-  touchStartX = touch.clientX;
-  touchStartY = touch.clientY;
-}, { passive: true });
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+  },
+  { passive: true }
+);
 
-canvas.addEventListener("touchend", event => {
-  const touch = event.changedTouches[0];
+canvas.addEventListener(
+  "touchend",
+  event => {
+    const touch = event.changedTouches[0];
 
-  const deltaX = touch.clientX - touchStartX;
-  const deltaY = touch.clientY - touchStartY;
+    const deltaX =
+      touch.clientX - touchStartX;
 
-  if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 20) {
-    return;
-  }
+    const deltaY =
+      touch.clientY - touchStartY;
 
-  if (Math.abs(deltaX) > Math.abs(deltaY)) {
-    setDirection(deltaX > 0 ? "right" : "left");
+    if (
+      Math.max(
+        Math.abs(deltaX),
+        Math.abs(deltaY)
+      ) < 20
+    ) {
+      return;
+    }
+
+    if (
+      Math.abs(deltaX) >
+      Math.abs(deltaY)
+    ) {
+      setDirection(
+        deltaX > 0 ? "right" : "left"
+      );
+    } else {
+      setDirection(
+        deltaY > 0 ? "down" : "up"
+      );
+    }
+  },
+  { passive: true }
+);
+
+async function initializeGame() {
+  createMaze();
+  createCharacters();
+  updateStats();
+  draw();
+
+  startButton.disabled = true;
+  setStatus("Connecting your ChefDesk account...");
+
+  await initializeLoyalty();
+
+  startButton.disabled = false;
+
+  if (loyaltyReady) {
+    setStatus("Ready! Complete a level to earn loyalty points.");
   } else {
-    setDirection(deltaY > 0 ? "down" : "up");
+    setStatus("Ready! Loyalty points are unavailable.");
   }
-}, { passive: true });
 
-createMaze();
-createCharacters();
-updateStats();
-draw();
+  animationId = requestAnimationFrame(gameLoop);
+}
 
-animationId = requestAnimationFrame(gameLoop);
+initializeGame();
