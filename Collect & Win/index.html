@@ -1,0 +1,107 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAF7EF">
+  <title>Collect & Win | ChefDesk</title>
+  <meta name="description" content="Collect food items, complete collections and earn points with ChefDesk.">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="header">
+    <div class="container navbar">
+      <a href="../Dashboard/index.html" class="logo">
+        Chef<span>Desk</span><b>.</b>
+      </a>
+      <a href="../Dashboard/index.html" class="back-link">← Dashboard</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <p class="eyebrow">CHEFDESK DIGITAL GAMES</p>
+      <h1>Collect <em>& Win.</em></h1>
+      <p>Discover delicious food items, complete collections and unlock new levels.</p>
+    </section>
+
+    <section class="game-panel">
+      <div class="stats">
+        <div class="stat">
+          <span>TOTAL POINTS</span>
+          <strong id="points">0</strong>
+        </div>
+        <div class="stat">
+          <span>COLLECTED</span>
+          <strong id="collected">0/12</strong>
+        </div>
+        <div class="stat">
+          <span>LEVEL</span>
+          <strong id="level">1</strong>
+        </div>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-label">
+          <span>Collection progress</span>
+          <span id="progressText">0%</span>
+        </div>
+        <div
+          class="progress-track"
+          id="progressTrack"
+          role="progressbar"
+          aria-label="Collection progress"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        >
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div class="discovery-area">
+        <p class="eyebrow">YOUR NEXT DISCOVERY</p>
+        <h2>What's on the menu?</h2>
+        <p id="status" role="status" aria-live="polite">
+          Tap the button to discover your first food item.
+        </p>
+
+        <div class="mystery-card" id="mysteryCard">
+          <div class="mystery-icon" id="mysteryIcon">❔</div>
+          <h3 id="mysteryTitle">Mystery Food</h3>
+          <p id="mysteryDescription">A delicious surprise awaits.</p>
+        </div>
+
+        <button id="collectButton" class="primary-button" type="button">
+          Discover Food
+        </button>
+      </div>
+    </section>
+
+    <section class="collections-section">
+      <div class="section-heading">
+        <p class="eyebrow">YOUR FOOD COLLECTIONS</p>
+        <h2>Complete the <em>menu.</em></h2>
+        <p>Collect all four items in each category to unlock the next level.</p>
+      </div>
+
+      <div id="collectionsContainer" class="collections-container"></div>
+    </section>
+
+    <section class="rewards-panel">
+      <div class="rewards-icon">🏆</div>
+      <div>
+        <p class="eyebrow">COLLECTION MILESTONES</p>
+        <h2>Every discovery counts.</h2>
+        <p>Earn 10 points per new food item and 100 bonus points for each completed collection.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    © 2026 ChefDesk · Good food. Great games.
+  </footer>
+</body>
+</html>
