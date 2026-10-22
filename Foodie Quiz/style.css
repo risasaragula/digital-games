@@ -22,9 +22,6 @@ body {
   flex-direction: column;
   background: var(--cream);
   color: var(--green);
-  font-family: "DM Sans", sans-serif;
-}
-body {
   font-family: Arial, sans-serif;
 }
 
@@ -32,6 +29,7 @@ h1,
 h2 {
   font-family: Georgia, serif;
 }
+
 button {
   font: inherit;
   cursor: pointer;
@@ -101,11 +99,6 @@ a {
   letter-spacing: 2.5px;
 }
 
-h1,
-h2 {
-  font-family: "Playfair Display", Georgia, serif;
-}
-
 h1 {
   font-size: clamp(43px, 7vw, 64px);
   line-height: 1.1;
@@ -152,8 +145,7 @@ h1 span {
   transition: width 0.3s ease;
 }
 
-.quiz-card,
-.result-card {
+.quiz-card {
   padding: 34px;
   background: var(--white);
   border: 1px solid rgba(33, 75, 56, 0.15);
@@ -311,7 +303,7 @@ h1 span {
 
 .result-score {
   margin: 20px 0;
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: Georgia, serif;
   font-size: 70px;
   font-weight: 700;
   line-height: 1;
@@ -397,8 +389,7 @@ a:focus-visible {
     margin-bottom: 32px;
   }
 
-  .quiz-card,
-  .result-card {
+  .quiz-card {
     padding: 24px 18px;
     border-radius: 17px;
   }
