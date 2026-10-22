@@ -14,8 +14,8 @@
     body {
       margin: 0;
       background: #faf7ef;
-      font-family: Arial, sans-serif;
       color: #204b39;
+      font-family: Arial, sans-serif;
     }
 
     header {
@@ -28,9 +28,9 @@
     }
 
     header a {
-      text-decoration: none;
       color: #204b39;
       font-weight: bold;
+      text-decoration: none;
     }
 
     main {
@@ -39,8 +39,12 @@
       padding: 0 20px 50px;
     }
 
-    h1 {
+    h1,
+    .section-title {
       font-family: Georgia, serif;
+    }
+
+    h1 {
       font-size: 40px;
       margin-bottom: 10px;
     }
@@ -78,8 +82,18 @@
       cursor: pointer;
     }
 
+    .logout:disabled {
+      opacity: 0.5;
+    }
+
+    .sync-status {
+      margin-top: 16px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #d4e3d7;
+    }
+
     .section-title {
-      font-family: Georgia, serif;
       font-size: 25px;
       margin: 32px 0 16px;
     }
@@ -90,11 +104,19 @@
       gap: 12px;
     }
 
-    .wallet-card {
+    .wallet-card,
+    .progress-section,
+    .collection-card,
+    .reward-card {
       background: #fffdf7;
       border: 1px solid #e5e7db;
       border-radius: 15px;
       padding: 20px;
+    }
+
+    .wallet-card.highlight {
+      background: #e9f1e8;
+      border-color: #d4e3d7;
     }
 
     .wallet-card span {
@@ -121,23 +143,23 @@
       line-height: 1.6;
     }
 
-    .wallet-card.highlight {
-      background: #e9f1e8;
-      border-color: #d4e3d7;
+    .notice {
+      background: #fff1e5;
+      color: #885437;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.7;
+      margin-top: 14px;
     }
 
     .progress-section {
       margin-top: 15px;
-      padding: 20px;
-      background: #fffdf7;
-      border: 1px solid #e5e7db;
-      border-radius: 15px;
     }
 
     .progress-heading {
       display: flex;
       justify-content: space-between;
-      align-items: center;
       gap: 12px;
       font-size: 13px;
       font-weight: bold;
@@ -164,13 +186,6 @@
       color: #77867b;
       font-size: 12px;
       line-height: 1.7;
-    }
-
-    .collection-card {
-      background: #fffdf7;
-      border: 1px solid #e5e7db;
-      border-radius: 15px;
-      padding: 20px;
     }
 
     .collection-stats {
@@ -202,10 +217,6 @@
     }
 
     .reward-card {
-      background: #fffdf7;
-      border: 1px solid #e5e7db;
-      border-radius: 15px;
-      padding: 20px;
       margin: 13px 0;
     }
 
@@ -257,7 +268,6 @@
     }
   </style>
 </head>
-
 <body>
   <header>
     <a href="../Dashboard/index.html">ChefDesk.</a>
@@ -267,34 +277,43 @@
   <main>
     <h1>My Rewards 🎁</h1>
     <p class="subtitle">
-      Your coupons, loyalty points and food collections in one place.
+      Your games, points, coupons and food collections in one place.
     </p>
 
     <div class="account-card">
       <p>YOUR CHEFDESK ACCOUNT</p>
-      <h2 id="customer-number"></h2>
+      <h2 id="customer-number">Loading...</h2>
       <button class="logout" id="logout-btn">Log Out</button>
+      <div class="sync-status" id="sync-status" role="status">
+        Checking Firebase connection...
+      </div>
     </div>
 
     <h2 class="section-title">My Loyalty Wallet</h2>
 
     <div class="wallet-grid">
       <div class="wallet-card highlight">
-        <span>Redeemable Points</span>
+        <span>Demo Loyalty Points</span>
         <strong id="wallet-points">0</strong>
-        <p>Demo loyalty balance</p>
+        <p>Local only · Not redeemable</p>
       </div>
 
       <div class="wallet-card">
         <span>Total Game Points</span>
         <strong id="game-points">0</strong>
-        <p>All eligible game wins</p>
+        <p id="game-points-note">Connecting to cloud...</p>
       </div>
+    </div>
+
+    <div class="notice">
+      Game Points sync across devices using Firebase.
+      Demo Loyalty Points and coupons are stored locally.
+      Neither balance can be redeemed at restaurants yet.
     </div>
 
     <div class="progress-section">
       <div class="progress-heading">
-        <span>Today's Loyalty Earnings</span>
+        <span>Today's Demo Loyalty Earnings</span>
         <span id="daily-points">0 / 100</span>
       </div>
 
@@ -303,8 +322,7 @@
       </div>
 
       <p class="progress-note" id="daily-note">
-        Earn up to 100 redeemable points per day.
-        You can continue playing after reaching the limit.
+        Checking today's earnings...
       </p>
     </div>
 
@@ -316,7 +334,6 @@
           <strong id="collection-count">0 / 12</strong>
           <span>Food Items Collected</span>
         </div>
-
         <div>
           <strong id="collection-points">0</strong>
           <span>Collection Points</span>
@@ -345,113 +362,88 @@
   <script>
     const customerNumber = document.getElementById("customer-number");
     const rewardsList = document.getElementById("rewards-list");
+    const syncStatus = document.getElementById("sync-status");
+    const logoutButton = document.getElementById("logout-btn");
 
-    function renderRewards() {
+    function renderAccount() {
       const customer = ChefDesk.getCustomer();
 
-      if (!customer) {
-        return;
-      }
-
-      customerNumber.textContent = customer.displayPhone;
-
-      const rewards = ChefDesk.getRewards();
-      rewardsList.replaceChildren();
-
-      if (rewards.length === 0) {
-        const empty = document.createElement("div");
-
-        empty.className = "empty";
-        empty.textContent =
-          "🎟️ No rewards yet! Play a ChefDesk game " +
-          "to collect your first demo reward.";
-
-        rewardsList.appendChild(empty);
-        return;
-      }
-
-      [...rewards].reverse().forEach(reward => {
-        const card = document.createElement("div");
-        card.className = "reward-card";
-
-        const tag = document.createElement("span");
-        tag.className = "reward-tag";
-        tag.textContent = reward.status;
-
-        const title = document.createElement("h3");
-        title.textContent = reward.prize;
-
-        const game = document.createElement("p");
-        game.textContent = "Won from: " + reward.game;
-
-        const date = document.createElement("p");
-        date.textContent = new Date(
-          reward.createdAt
-        ).toLocaleString();
-
-        card.append(tag, title, game, date);
-        rewardsList.appendChild(card);
-      });
+      customerNumber.textContent =
+        customer?.verified
+          ? customer.displayPhone
+          : "Not signed in";
     }
 
     function renderLoyalty() {
-      if (!window.ChefDeskLoyalty) {
-        return;
-      }
-
       const wallet = ChefDeskLoyalty.getWallet();
-      const todayPoints = ChefDeskLoyalty.getTodayPoints();
-      const dailyLimit = ChefDeskLoyalty.DAILY_LIMIT;
+      const local = ChefDeskLoyalty.getLocalWallet();
+      const status = ChefDeskLoyalty.getSyncStatus();
+      const today = ChefDeskLoyalty.getTodayPoints(local);
+      const limit = ChefDeskLoyalty.DAILY_LIMIT;
 
       document.getElementById("wallet-points").textContent =
-        wallet.totalPoints;
+        local.totalPoints;
 
       document.getElementById("game-points").textContent =
-        wallet.gamePoints;
+        status.connected
+          ? wallet.gamePoints
+          : "—";
+
+      document.getElementById("game-points-note").textContent =
+        status.connected
+          ? "Synced demo Game Points"
+          : "Cloud Game Points not loaded";
 
       document.getElementById("daily-points").textContent =
-        `${todayPoints} / ${dailyLimit}`;
+        `${today} / ${limit}`;
 
       document.getElementById("daily-progress").style.width =
-        `${Math.min(100, (todayPoints / dailyLimit) * 100)}%`;
+        `${Math.min(100, (today / limit) * 100)}%`;
 
       document.getElementById("daily-note").textContent =
-        todayPoints >= dailyLimit
-          ? "Daily limit reached! Keep playing for game points. Redeemable earning allowance resets tomorrow."
-          : `You can earn ${dailyLimit - todayPoints} more redeemable points today.`;
+        today >= limit
+          ? "Today's local demo earning limit reached."
+          : `${limit - today} more local demo loyalty points available today.`;
+
+      if (status.connected) {
+        syncStatus.textContent =
+          "✓ Firebase Game Points synced successfully";
+      } else if (status.error) {
+        syncStatus.textContent =
+          "Cloud sync failed: " + status.error;
+      }
     }
 
     function renderCollection() {
       const customer = ChefDesk.getCustomer();
 
-      if (!customer) {
-        return;
+      let collected = [];
+
+      if (customer?.verified) {
+        try {
+          const customers = JSON.parse(
+            localStorage.getItem("chefdesk_collect_win_v2") || "{}"
+          );
+
+          const saved = customers[customer.phone];
+
+          collected = saved && Array.isArray(saved.collected)
+            ? [...new Set(saved.collected)]
+            : [];
+        } catch (error) {
+          console.error("Collection loading error:", error);
+        }
       }
-
-      let customers = {};
-
-      try {
-        customers = JSON.parse(
-          localStorage.getItem("chefdesk_collect_win_v2") || "{}"
-        );
-      } catch (error) {
-        customers = {};
-      }
-
-      const saved = customers[customer.phone];
-      const collected = saved && Array.isArray(saved.collected)
-        ? [...new Set(saved.collected)]
-        : [];
 
       const count = Math.min(collected.length, 12);
 
-      const collectionGroups = [
+      const groups = [
         ["burger", "pizza", "fries", "hotdog"],
         ["icecream", "donut", "cake", "cookie"],
         ["apple", "banana", "strawberry", "watermelon"]
       ];
 
-      const completed = collectionGroups.filter(group =>
+      const completed = groups.filter(group =>
         group.every(item => collected.includes(item))
       ).length;
 
@@ -467,30 +459,134 @@
         `${Math.round((count / 12) * 100)}%`;
     }
 
-    function renderAll() {
-      renderRewards();
-      renderLoyalty();
-      renderCollection();
+    function renderRewards() {
+      rewardsList.replaceChildren();
+
+      const customer = ChefDesk.getCustomer();
+
+      if (!customer?.verified) {
+        return;
+      }
+
+      const rewards = ChefDesk.getRewards();
+
+      if (!rewards.length) {
+        const empty = document.createElement("div");
+
+        empty.className = "empty";
+        empty.textContent =
+          "🎟️ No demo coupons yet! Play ChefDesk games to collect rewards.";
+
+        rewardsList.appendChild(empty);
+        return;
+      }
+
+      [...rewards].reverse().forEach(reward => {
+        const card = document.createElement("div");
+        card.className = "reward-card";
+
+        const tag = document.createElement("span");
+        tag.className = "reward-tag";
+        tag.textContent = "Demo only";
+
+        const title = document.createElement("h3");
+        title.textContent = reward.prize || "ChefDesk Reward";
+
+        const game = document.createElement("p");
+        game.textContent =
+          "Won from: " + (reward.game || "ChefDesk");
+
+        const date = document.createElement("p");
+        const parsed = new Date(reward.createdAt);
+
+        date.textContent = Number.isNaN(parsed.getTime())
+          ? ""
+          : parsed.toLocaleString();
+
+        card.append(tag, title, game, date);
+        rewardsList.appendChild(card);
+      });
     }
 
-    async function initialize() {
-      await ChefDesk.requireLogin();
+    function renderAll() {
+      renderAccount();
+      renderLoyalty();
+      renderCollection();
+      renderRewards();
+    }
+
+    async function connectCurrentWallet() {
+      syncStatus.textContent =
+        "Connecting to Firebase Game Points...";
+
+      const connected = await ChefDeskLoyalty.connectWallet();
+
+      if (!connected) {
+        const status = ChefDeskLoyalty.getSyncStatus();
+
+        syncStatus.textContent = status.error
+          ? "Cloud sync failed: " + status.error
+          : "Unable to connect to cloud wallet.";
+      }
+
       renderAll();
     }
 
-    document.getElementById("logout-btn")
-      .addEventListener("click", async () => {
-        await ChefDesk.logout();
+    async function initialize() {
+      try {
+        syncStatus.textContent = "Verifying your account...";
+
         await ChefDesk.requireLogin();
+
         renderAll();
-      });
+
+        await connectCurrentWallet();
+      } catch (error) {
+        console.error("ChefDesk initialization error:", error);
+
+        syncStatus.textContent =
+          "Unable to initialize. Refresh and try again.";
+      }
+    }
+
+    logoutButton.addEventListener("click", async () => {
+      logoutButton.disabled = true;
+
+      try {
+        ChefDeskLoyalty.disconnectWallet();
+
+        await ChefDesk.logout();
+
+        syncStatus.textContent = "Waiting for sign-in...";
+
+        await ChefDesk.requireLogin();
+
+        renderAll();
+
+        await connectCurrentWallet();
+      } catch (error) {
+        console.error("Account change error:", error);
+
+        syncStatus.textContent =
+          "Unable to switch account. Please refresh.";
+      } finally {
+        logoutButton.disabled = false;
+      }
+    });
 
     window.addEventListener(
       "chefdesk:points-updated",
       renderLoyalty
     );
 
-    window.addEventListener("pageshow", renderAll);
+    window.addEventListener(
+      "chefdesk:customer-updated",
+      renderAll
+    );
+
+    window.addEventListener("pageshow", () => {
+      renderAll();
+    });
 
     initialize();
   </script>
