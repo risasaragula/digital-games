@@ -59,6 +59,9 @@ let busy = false;
 let aiWinId = "";
 let aiRewardClaimed = false;
 
+const onlineAwardsInProgress = new Set();
+const onlineAwardsCompleted = new Set();
+
 function message(text) {
   $("message").textContent = text;
 }
@@ -141,12 +144,14 @@ async function awardAIWin() {
   try {
     await ChefDesk.requireLogin();
 
+    if (mode !== "ai" || aiWinId !== winId) {
+      return;
+    }
+
     const result = ChefDeskLoyalty.addWin(
       "tictactoe",
       winId
     );
-
-    if (mode !== "ai" || aiWinId !== winId) return;
 
     if (!result.success) {
       message(
@@ -293,7 +298,9 @@ function bestAIMove() {
     }
   }
 
-  return moves[Math.floor(Math.random() * moves.length)];
+  return moves[
+    Math.floor(Math.random() * moves.length)
+  ];
 }
 
 function playAI(index) {
@@ -458,6 +465,79 @@ function showRoom(code) {
   );
 }
 
+async function awardOnlineWin() {
+  if (
+    mode !== "online" ||
+    !roomId ||
+    !roomData ||
+    !mySymbol ||
+    roomData.status !== "finished" ||
+    roomData.winner !== mySymbol
+  ) {
+    return;
+  }
+
+  if (
+    !window.ChefDesk ||
+    !window.ChefDeskLoyalty ||
+    typeof ChefDeskLoyalty.addGamePoints !== "function"
+  ) {
+    message("Game Points system is unavailable.");
+    return;
+  }
+
+  const currentRoom = roomId;
+  const currentRound = roomData.round;
+  const currentSymbol = mySymbol;
+  const matchId = `${currentRoom}:round:${currentRound}`;
+
+  if (
+    onlineAwardsInProgress.has(matchId) ||
+    onlineAwardsCompleted.has(matchId)
+  ) {
+    return;
+  }
+
+  onlineAwardsInProgress.add(matchId);
+
+  try {
+    await ChefDesk.requireLogin();
+
+    if (
+      mode !== "online" ||
+      roomId !== currentRoom ||
+      roomData?.round !== currentRound ||
+      roomData?.status !== "finished" ||
+      roomData?.winner !== currentSymbol ||
+      mySymbol !== currentSymbol
+    ) {
+      return;
+    }
+
+    const result = ChefDeskLoyalty.addGamePoints(
+      "tictactoe",
+      matchId
+    );
+
+    if (result.success) {
+      onlineAwardsCompleted.add(matchId);
+      message("🎉 You earned +10 Game Points!");
+    } else if (result.reason === "duplicate") {
+      onlineAwardsCompleted.add(matchId);
+    } else if (result.reason === "storage") {
+      message("Unable to save your Game Points.");
+    } else if (result.reason === "not_logged_in") {
+      message("Sign in to collect your Game Points.");
+    } else {
+      message("Unable to award Game Points.");
+    }
+  } catch (error) {
+    message("Sign in to collect your Game Points.");
+  } finally {
+    onlineAwardsInProgress.delete(matchId);
+  }
+}
+
 function renderOnline() {
   if (!roomData || mode !== "online") return;
 
@@ -503,6 +583,13 @@ function renderOnline() {
   $("playAgain").textContent = voted
     ? "Waiting for friend..."
     : "↻ Play Again";
+
+  if (
+    roomData.status === "finished" &&
+    roomData.winner === mySymbol
+  ) {
+    awardOnlineWin();
+  }
 }
 
 async function createRoom() {
@@ -545,7 +632,9 @@ async function createRoom() {
 async function joinRoom() {
   if (busy || !(await connectOnline())) return;
 
-  const code = $("roomCode").value.trim().toUpperCase();
+  const code = $("roomCode").value
+    .trim()
+    .toUpperCase();
 
   if (!/^[A-Z2-9]{6}$/.test(code)) {
     message("Enter a valid 6-character room code.");
@@ -664,7 +753,9 @@ async function playOnline(index) {
               ? "O"
               : null;
 
-        const currentBoard = normalizeBoard(current.board);
+        const currentBoard = normalizeBoard(
+          current.board
+        );
 
         if (
           !symbol ||
@@ -728,7 +819,10 @@ async function rematchOnline() {
     await runTransaction(
       roomRef(currentRoom),
       current => {
-        if (!current || current.status !== "finished") {
+        if (
+          !current ||
+          current.status !== "finished"
+        ) {
           return;
         }
 
@@ -748,13 +842,20 @@ async function rematchOnline() {
 
         current.rematch[symbol] = true;
 
-        if (current.rematch.X && current.rematch.O) {
+        if (
+          current.rematch.X &&
+          current.rematch.O
+        ) {
           current.board = emptyBoard();
           current.status = "playing";
           current.winner = "";
           current.turn =
-            current.round % 2 === 1 ? "O" : "X";
+            current.round % 2 === 1
+              ? "O"
+              : "X";
+
           current.round += 1;
+
           current.rematch = {
             X: false,
             O: false
@@ -789,7 +890,10 @@ async function copyInvite() {
   url.searchParams.set("room", roomId);
 
   try {
-    await navigator.clipboard.writeText(url.toString());
+    await navigator.clipboard.writeText(
+      url.toString()
+    );
+
     message("Invite link copied!");
   } catch (error) {
     message(`Share this room code: ${roomId}`);
@@ -803,8 +907,13 @@ $("chooseOnline").onclick = async () => {
   await connectOnline();
 };
 
-$("backFromAI").onclick = () => show("modeScreen");
-$("backFromOnline").onclick = () => show("modeScreen");
+$("backFromAI").onclick = () => {
+  show("modeScreen");
+};
+
+$("backFromOnline").onclick = () => {
+  show("modeScreen");
+};
 
 document.querySelectorAll("[data-difficulty]")
   .forEach(button => {

@@ -24,7 +24,6 @@
 
   function getStorageKey() {
     const phone = getPhone();
-
     return phone ? STORAGE_PREFIX + phone : null;
   }
 
@@ -117,7 +116,7 @@
     return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   }
 
-  function addWin(gameId, winId) {
+  function addPoints(gameId, winId, redeemable) {
     if (!getPhone()) {
       return {
         success: false,
@@ -155,10 +154,9 @@
       DAILY_LIMIT - getTodayPoints(wallet)
     );
 
-    const earnedPoints = Math.min(
-      POINTS_PER_WIN,
-      remaining
-    );
+    const earnedPoints = redeemable
+      ? Math.min(POINTS_PER_WIN, remaining)
+      : 0;
 
     wallet.gamePoints += POINTS_PER_WIN;
     wallet.totalPoints += earnedPoints;
@@ -169,6 +167,7 @@
       gameId,
       gamePoints: POINTS_PER_WIN,
       earnedPoints,
+      rewardType: redeemable ? "redeemable" : "game_only",
       day: getTodayKey(),
       timestamp: new Date().toISOString()
     });
@@ -198,9 +197,18 @@
     };
   }
 
+  function addWin(gameId, winId) {
+    return addPoints(gameId, winId, true);
+  }
+
+  function addGamePoints(gameId, winId) {
+    return addPoints(gameId, winId, false);
+  }
+
   window.ChefDeskLoyalty = {
     getWallet,
     addWin,
+    addGamePoints,
     createWinId,
     getTodayPoints,
     getRemainingPoints,
