@@ -480,7 +480,7 @@
 
     document.getElementById("logout-btn")
       .addEventListener("click", async () => {
-        ChefDesk.logout();
+        await ChefDesk.logout();
         await ChefDesk.requireLogin();
         renderAll();
       });

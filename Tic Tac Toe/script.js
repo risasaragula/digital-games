@@ -9,6 +9,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import {
   getAuth,
+  onAuthStateChanged,
   signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
@@ -80,6 +81,13 @@ function emptyBoard() {
 
 function normalizeBoard(value) {
   if (Array.isArray(value)) {
+    return Array.from(
+      { length: 9 },
+      (_, index) => value[index] || ""
+    );
+  }
+
+  if (value && typeof value === "object") {
     return Array.from(
       { length: 9 },
       (_, index) => value[index] || ""
@@ -353,14 +361,22 @@ async function connectOnline() {
   if (user) return true;
 
   if (!loginPromise) {
-    loginPromise = signInAnonymously(auth);
+    loginPromise = (async () => {
+      await auth.authStateReady();
+
+      if (auth.currentUser) {
+        return auth.currentUser;
+      }
+
+      const credential = await signInAnonymously(auth);
+      return credential.user;
+    })();
   }
 
   try {
     $("connection").textContent = "Connecting...";
 
-    const credential = await loginPromise;
-    user = credential.user;
+    user = await loginPromise;
 
     $("connection").textContent = "🟢 Online ready";
     return true;
@@ -608,9 +624,13 @@ async function createRoom() {
 
       const result = await runTransaction(
         roomRef(code),
-        current => current === null
-          ? newRoom(name)
-          : undefined,
+        current => {
+          if (current !== null) {
+            return;
+          }
+
+          return newRoom(name);
+        },
         { applyLocally: false }
       );
 
@@ -622,19 +642,19 @@ async function createRoom() {
 
     message("Could not create a room. Try again.");
   } catch (error) {
-    message(error.message);
+    console.error("Create room failed:", error);
+    message(`Unable to create room: ${error.message}`);
   } finally {
     busy = false;
     $("createRoom").disabled = false;
   }
 }
 
+
 async function joinRoom() {
   if (busy || !(await connectOnline())) return;
 
-  const code = $("roomCode").value
-    .trim()
-    .toUpperCase();
+  const code = $("roomCode").value.trim().toUpperCase();
 
   if (!/^[A-Z2-9]{6}$/.test(code)) {
     message("Enter a valid 6-character room code.");
@@ -653,70 +673,84 @@ async function joinRoom() {
     const snapshot = await get(reference);
 
     if (!snapshot.exists()) {
-      message("Room not found. Check your code.");
+      message("Room not found. Create a new room.");
       return;
     }
 
     const existing = snapshot.val();
 
-    if (
-      existing.players?.X?.uid !== user.uid &&
-      existing.players?.O?.uid !== user.uid
-    ) {
-      if (
-        existing.status !== "waiting" ||
-        existing.players?.O?.uid
-      ) {
-        message("This room is already full or has started.");
-        return;
-      }
+    if (existing.players?.X?.uid === user.uid) {
+      showRoom(code);
+      return;
     }
 
+    if (existing.players?.O?.uid === user.uid) {
+      showRoom(code);
+      return;
+    }
+
+    if (
+      existing.status !== "waiting" ||
+      existing.players?.O?.uid
+    ) {
+      message("This room is already full or started.");
+      return;
+    }
+
+    const playerORef = ref(
+      db,
+      `ticTacToeRooms/${code}/players/O`
+    );
+
     const transaction = await runTransaction(
-      reference,
+      playerORef,
       current => {
-        if (!current) return;
-
-        if (
-          current.players?.X?.uid === user.uid ||
-          current.players?.O?.uid === user.uid
-        ) {
-          return current;
-        }
-
-        if (
-          current.status !== "waiting" ||
-          current.players?.O?.uid
-        ) {
+        if (current?.uid) {
           return;
         }
 
-        current.players.O = {
+        return {
           uid: user.uid,
           name
         };
-
-        current.status = "playing";
-        return current;
       },
       { applyLocally: false }
     );
 
-    const data = transaction.snapshot.val();
-
-    if (
-      data &&
-      (
-        data.players?.X?.uid === user.uid ||
-        data.players?.O?.uid === user.uid
-      )
-    ) {
-      showRoom(code);
-    } else {
-      message("Unable to join. Room may already be full.");
+    if (!transaction.committed) {
+      message("Someone else joined first. Room is full.");
+      return;
     }
+
+    const latest = await get(reference);
+
+    if (!latest.exists()) {
+      message("Room no longer exists.");
+      return;
+    }
+
+    const latestData = latest.val();
+
+    if (latestData.players?.O?.uid !== user.uid) {
+      message("Unable to confirm your room entry.");
+      return;
+    }
+
+    const statusRef = ref(
+      db,
+      `ticTacToeRooms/${code}/status`
+    );
+
+    const { set } = await import(
+      "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"
+    );
+
+    await set(statusRef, "playing");
+
+    showRoom(code);
   } catch (error) {
-    message(error.message);
+    console.error("Join room error:", error);
+    message(`Join failed: ${error.message}`);
   } finally {
     busy = false;
     $("joinRoom").disabled = false;
@@ -742,7 +776,10 @@ async function playOnline(index) {
     const result = await runTransaction(
       roomRef(currentRoom),
       current => {
-        if (!current || current.status !== "playing") {
+        if (
+          !current ||
+          current.status !== "playing"
+        ) {
           return;
         }
 
@@ -790,6 +827,7 @@ async function playOnline(index) {
       message("Move not saved. Please try again.");
     }
   } catch (error) {
+    console.error("Move failed:", error);
     message(error.message);
   } finally {
     busy = false;
@@ -833,7 +871,9 @@ async function rematchOnline() {
               ? "O"
               : null;
 
-        if (!symbol) return;
+        if (!symbol) {
+          return;
+        }
 
         current.rematch ||= {
           X: false,
@@ -849,6 +889,7 @@ async function rematchOnline() {
           current.board = emptyBoard();
           current.status = "playing";
           current.winner = "";
+
           current.turn =
             current.round % 2 === 1
               ? "O"
@@ -867,6 +908,7 @@ async function rematchOnline() {
       { applyLocally: false }
     );
   } catch (error) {
+    console.error("Rematch failed:", error);
     message(error.message);
   } finally {
     busy = false;
@@ -900,7 +942,9 @@ async function copyInvite() {
   }
 }
 
-$("chooseAI").onclick = () => show("aiSettings");
+$("chooseAI").onclick = () => {
+  show("aiSettings");
+};
 
 $("chooseOnline").onclick = async () => {
   show("onlineLobby");
