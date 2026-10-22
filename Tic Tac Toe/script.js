@@ -1,18 +1,33 @@
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {
+  getDatabase,
+  ref,
+  get,
+  onValue,
+  runTransaction
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import {
+  getAuth,
+  signInAnonymously
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_DATABASE_URL.firebasedatabase.app",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDbEtb9S2Mnqx02EQl2rwhonE1kg8XbmIw",
+  authDomain: "chefdesk-games.firebaseapp.com",
+  databaseURL: "https://chefdesk-games-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "chefdesk-games",
+  storageBucket: "chefdesk-games.firebasestorage.app",
+  messagingSenderId: "171693424148",
+  appId: "1:171693424148:web:daa340e425a9a692e97101",
+  measurementId: "G-GPGVNQCB4T"
 };
 
-const $ = id => document.getElementById(id);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
 
+const $ = id => document.getElementById(id);
 const cells = [...document.querySelectorAll(".cell")];
 
 const lines = [
@@ -33,9 +48,8 @@ let finished = false;
 let thinking = false;
 let aiTimer = null;
 
-let db = null;
-let auth = null;
 let user = null;
+let loginPromise = null;
 let roomId = null;
 let roomData = null;
 let mySymbol = null;
@@ -61,6 +75,17 @@ function emptyBoard() {
   return Array(9).fill("");
 }
 
+function normalizeBoard(value) {
+  if (Array.isArray(value)) {
+    return Array.from(
+      { length: 9 },
+      (_, index) => value[index] || ""
+    );
+  }
+
+  return emptyBoard();
+}
+
 function resultOf(b) {
   for (const line of lines) {
     const [a, c, d] = line;
@@ -81,17 +106,15 @@ function resultOf(b) {
 function drawBoard(b, enabled) {
   const result = resultOf(b);
 
-  cells.forEach((cell, i) => {
-    cell.textContent = b[i] || "";
-
-    cell.classList.toggle("o", b[i] === "O");
-
+  cells.forEach((cell, index) => {
+    cell.textContent = b[index] || "";
+    cell.classList.toggle("o", b[index] === "O");
     cell.classList.toggle(
       "win",
-      !!result && result.line.includes(i)
+      Boolean(result && result.line.includes(index))
     );
 
-    cell.disabled = !enabled || !!b[i];
+    cell.disabled = !enabled || Boolean(b[index]);
   });
 }
 
@@ -104,9 +127,7 @@ function createAIWinId() {
 }
 
 async function awardAIWin() {
-  if (aiRewardClaimed) {
-    return;
-  }
+  if (aiRewardClaimed) return;
 
   aiRewardClaimed = true;
 
@@ -125,9 +146,7 @@ async function awardAIWin() {
       winId
     );
 
-    if (mode !== "ai" || aiWinId !== winId) {
-      return;
-    }
+    if (mode !== "ai" || aiWinId !== winId) return;
 
     if (!result.success) {
       message(
@@ -135,7 +154,6 @@ async function awardAIWin() {
           ? "Points for this match were already recorded."
           : "Unable to save your loyalty points."
       );
-
       return;
     }
 
@@ -157,6 +175,8 @@ async function awardAIWin() {
 }
 
 function startAI(level) {
+  disconnectRoom();
+
   mode = "ai";
   difficulty = level;
   board = emptyBoard();
@@ -176,7 +196,7 @@ function startAI(level) {
 
   $("nameO").textContent =
     level === "nightmare"
-      ? "Nightmare AI"
+      ? "Expert AI"
       : level === "medium"
         ? "Medium AI"
         : "Easy AI";
@@ -211,25 +231,17 @@ function minimax(b, depth, maximizing) {
   const result = resultOf(b);
 
   if (result) {
-    if (result.winner === "O") {
-      return 10 - depth;
-    }
-
-    if (result.winner === "X") {
-      return depth - 10;
-    }
-
+    if (result.winner === "O") return 10 - depth;
+    if (result.winner === "X") return depth - 10;
     return 0;
   }
 
   let best = maximizing ? -Infinity : Infinity;
 
-  for (let i = 0; i < 9; i++) {
-    if (b[i]) {
-      continue;
-    }
+  for (let index = 0; index < 9; index++) {
+    if (b[index]) continue;
 
-    b[i] = maximizing ? "O" : "X";
+    b[index] = maximizing ? "O" : "X";
 
     const score = minimax(
       b,
@@ -237,7 +249,7 @@ function minimax(b, depth, maximizing) {
       !maximizing
     );
 
-    b[i] = "";
+    b[index] = "";
 
     best = maximizing
       ? Math.max(best, score)
@@ -252,15 +264,11 @@ function bestAIMove() {
     .map((value, index) => value === "" ? index : -1)
     .filter(index => index >= 0);
 
-  if (difficulty === "easy") {
-    return available[
-      Math.floor(Math.random() * available.length)
-    ];
-  }
+  if (!available.length) return undefined;
 
   if (
-    difficulty === "medium" &&
-    Math.random() < 0.45
+    difficulty === "easy" ||
+    (difficulty === "medium" && Math.random() < 0.45)
   ) {
     return available[
       Math.floor(Math.random() * available.length)
@@ -273,11 +281,7 @@ function bestAIMove() {
   for (const index of available) {
     board[index] = "O";
 
-    const score = minimax(
-      board,
-      0,
-      false
-    );
+    const score = minimax(board, 0, false);
 
     board[index] = "";
 
@@ -289,17 +293,15 @@ function bestAIMove() {
     }
   }
 
-  return moves[
-    Math.floor(Math.random() * moves.length)
-  ];
+  return moves[Math.floor(Math.random() * moves.length)];
 }
 
 function playAI(index) {
   if (
+    mode !== "ai" ||
     finished ||
     thinking ||
-    board[index] ||
-    mode !== "ai"
+    board[index]
   ) {
     return;
   }
@@ -325,9 +327,7 @@ function playAI(index) {
   aiTimer = setTimeout(() => {
     aiTimer = null;
 
-    if (mode !== "ai" || finished) {
-      return;
-    }
+    if (mode !== "ai" || finished) return;
 
     const move = bestAIMove();
 
@@ -336,51 +336,37 @@ function playAI(index) {
     }
 
     thinking = false;
-    finished = !!resultOf(board);
+    finished = Boolean(resultOf(board));
 
     renderAI();
   }, 400);
 }
 
 async function connectOnline() {
-  if (user) {
-    return true;
-  }
+  if (user) return true;
 
-  if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-    $("connection").textContent =
-      "Firebase setup required for online mode.";
-
-    return false;
+  if (!loginPromise) {
+    loginPromise = signInAnonymously(auth);
   }
 
   try {
     $("connection").textContent = "Connecting...";
 
-    if (!auth) {
-      const app = initializeApp(firebaseConfig);
-
-      db = getDatabase(app);
-      auth = getAuth(app);
-    }
-
-    const credential = await signInAnonymously(auth);
-
+    const credential = await loginPromise;
     user = credential.user;
 
     $("connection").textContent = "🟢 Online ready";
-
     return true;
   } catch (error) {
+    loginPromise = null;
     $("connection").textContent =
       "🔴 Connection failed: " + error.message;
-
     return false;
   }
 }
 
 function roomRef(code) {
-  return ref(db, "ticTacToeRooms/" + code);
+  return ref(db, `ticTacToeRooms/${code}`);
 }
 
 function makeCode() {
@@ -419,7 +405,20 @@ function newRoom(name) {
   };
 }
 
+function disconnectRoom() {
+  if (unsubscribe) {
+    unsubscribe();
+    unsubscribe = null;
+  }
+
+  roomId = null;
+  roomData = null;
+  mySymbol = null;
+}
+
 function showRoom(code) {
+  disconnectRoom();
+
   mode = "online";
   roomId = code;
 
@@ -428,16 +427,14 @@ function showRoom(code) {
   $("onlineInfo").classList.remove("hidden");
   $("displayCode").textContent = code;
 
-  if (unsubscribe) {
-    unsubscribe();
-  }
-
   unsubscribe = onValue(
     roomRef(code),
     snapshot => {
       if (!snapshot.exists()) {
+        disconnectRoom();
+        mode = null;
+        show("modeScreen");
         message("Room no longer exists.");
-        exitRoom();
         return;
       }
 
@@ -448,7 +445,9 @@ function showRoom(code) {
       } else if (roomData.players?.O?.uid === user.uid) {
         mySymbol = "O";
       } else {
-        exitRoom();
+        disconnectRoom();
+        mode = null;
+        show("modeScreen");
         message("You are not a player in this room.");
         return;
       }
@@ -460,11 +459,9 @@ function showRoom(code) {
 }
 
 function renderOnline() {
-  if (!roomData) {
-    return;
-  }
+  if (!roomData || mode !== "online") return;
 
-  const currentBoard = roomData.board || emptyBoard();
+  const currentBoard = normalizeBoard(roomData.board);
 
   $("nameX").textContent =
     roomData.players?.X?.name || "Waiting...";
@@ -485,7 +482,7 @@ function renderOnline() {
   } else if (roomData.status === "finished") {
     $("status").textContent =
       roomData.winner === "draw"
-        ? "🤝 Draw!"
+        ? "🤝 It's a draw!"
         : roomData.winner === mySymbol
           ? "🎉 You won!"
           : "Your friend won!";
@@ -496,24 +493,20 @@ function renderOnline() {
         : "Waiting for your friend...";
   }
 
-  const voted =
-    roomData.rematch?.[mySymbol] === true;
+  const voted = roomData.rematch?.[mySymbol] === true;
 
   $("playAgain").disabled =
     busy ||
     roomData.status !== "finished" ||
     voted;
 
-  $("playAgain").textContent =
-    voted
-      ? "Waiting for friend..."
-      : "↻ Play Again";
+  $("playAgain").textContent = voted
+    ? "Waiting for friend..."
+    : "↻ Play Again";
 }
 
 async function createRoom() {
-  if (!(await connectOnline()) || busy) {
-    return;
-  }
+  if (busy || !(await connectOnline())) return;
 
   busy = true;
   $("createRoom").disabled = true;
@@ -523,26 +516,24 @@ async function createRoom() {
       $("playerName").value.trim().slice(0, 24) ||
       "Guest";
 
-    for (let i = 0; i < 5; i++) {
+    for (let attempt = 0; attempt < 5; attempt++) {
       const code = makeCode();
 
-      const transaction = await runTransaction(
+      const result = await runTransaction(
         roomRef(code),
         current => current === null
           ? newRoom(name)
           : undefined,
-        {
-          applyLocally: false
-        }
+        { applyLocally: false }
       );
 
-      if (transaction.committed) {
+      if (result.committed) {
         showRoom(code);
         return;
       }
     }
 
-    message("Could not create room. Try again.");
+    message("Could not create a room. Try again.");
   } catch (error) {
     message(error.message);
   } finally {
@@ -552,13 +543,9 @@ async function createRoom() {
 }
 
 async function joinRoom() {
-  if (!(await connectOnline()) || busy) {
-    return;
-  }
+  if (busy || !(await connectOnline())) return;
 
-  const code = $("roomCode").value
-    .trim()
-    .toUpperCase();
+  const code = $("roomCode").value.trim().toUpperCase();
 
   if (!/^[A-Z2-9]{6}$/.test(code)) {
     message("Enter a valid 6-character room code.");
@@ -573,12 +560,33 @@ async function joinRoom() {
       $("playerName").value.trim().slice(0, 24) ||
       "Guest";
 
+    const reference = roomRef(code);
+    const snapshot = await get(reference);
+
+    if (!snapshot.exists()) {
+      message("Room not found. Check your code.");
+      return;
+    }
+
+    const existing = snapshot.val();
+
+    if (
+      existing.players?.X?.uid !== user.uid &&
+      existing.players?.O?.uid !== user.uid
+    ) {
+      if (
+        existing.status !== "waiting" ||
+        existing.players?.O?.uid
+      ) {
+        message("This room is already full or has started.");
+        return;
+      }
+    }
+
     const transaction = await runTransaction(
-      roomRef(code),
+      reference,
       current => {
-        if (!current) {
-          return;
-        }
+        if (!current) return;
 
         if (
           current.players?.X?.uid === user.uid ||
@@ -588,8 +596,8 @@ async function joinRoom() {
         }
 
         if (
-          current.players?.O?.uid ||
-          current.status !== "waiting"
+          current.status !== "waiting" ||
+          current.players?.O?.uid
         ) {
           return;
         }
@@ -600,12 +608,9 @@ async function joinRoom() {
         };
 
         current.status = "playing";
-
         return current;
       },
-      {
-        applyLocally: false
-      }
+      { applyLocally: false }
     );
 
     const data = transaction.snapshot.val();
@@ -619,7 +624,7 @@ async function joinRoom() {
     ) {
       showRoom(code);
     } else {
-      message("Room not found or already full.");
+      message("Unable to join. Room may already be full.");
     }
   } catch (error) {
     message(error.message);
@@ -630,20 +635,25 @@ async function joinRoom() {
 }
 
 async function playOnline(index) {
-  if (!roomId || !user || busy) {
+  if (
+    mode !== "online" ||
+    !roomId ||
+    !user ||
+    busy
+  ) {
     return;
   }
 
   busy = true;
+  renderOnline();
+
+  const currentRoom = roomId;
 
   try {
-    await runTransaction(
-      roomRef(roomId),
+    const result = await runTransaction(
+      roomRef(currentRoom),
       current => {
-        if (
-          !current ||
-          current.status !== "playing"
-        ) {
+        if (!current || current.status !== "playing") {
           return;
         }
 
@@ -654,22 +664,24 @@ async function playOnline(index) {
               ? "O"
               : null;
 
+        const currentBoard = normalizeBoard(current.board);
+
         if (
           !symbol ||
           current.turn !== symbol ||
-          current.board[index]
+          currentBoard[index]
         ) {
           return;
         }
 
-        current.board[index] = symbol;
+        currentBoard[index] = symbol;
+        current.board = currentBoard;
 
-        const result = resultOf(current.board);
+        const outcome = resultOf(currentBoard);
 
-        if (result) {
+        if (outcome) {
           current.status = "finished";
-          current.winner = result.winner;
-
+          current.winner = outcome.winner;
           current.rematch = {
             X: false,
             O: false
@@ -680,33 +692,43 @@ async function playOnline(index) {
 
         return current;
       },
-      {
-        applyLocally: false
-      }
+      { applyLocally: false }
     );
+
+    if (!result.committed) {
+      message("Move not saved. Please try again.");
+    }
   } catch (error) {
     message(error.message);
   } finally {
     busy = false;
-    renderOnline();
+
+    if (mode === "online" && roomId === currentRoom) {
+      renderOnline();
+    }
   }
 }
 
 async function rematchOnline() {
-  if (!roomId || !user || busy) {
+  if (
+    mode !== "online" ||
+    !roomId ||
+    !user ||
+    busy
+  ) {
     return;
   }
 
   busy = true;
+  renderOnline();
+
+  const currentRoom = roomId;
 
   try {
     await runTransaction(
-      roomRef(roomId),
+      roomRef(currentRoom),
       current => {
-        if (
-          !current ||
-          current.status !== "finished"
-        ) {
+        if (!current || current.status !== "finished") {
           return;
         }
 
@@ -717,31 +739,22 @@ async function rematchOnline() {
               ? "O"
               : null;
 
-        if (!symbol) {
-          return;
-        }
+        if (!symbol) return;
 
-        current.rematch = current.rematch || {
+        current.rematch ||= {
           X: false,
           O: false
         };
 
         current.rematch[symbol] = true;
 
-        if (
-          current.rematch.X &&
-          current.rematch.O
-        ) {
+        if (current.rematch.X && current.rematch.O) {
           current.board = emptyBoard();
           current.status = "playing";
           current.winner = "";
           current.turn =
-            current.round % 2 === 1
-              ? "O"
-              : "X";
-
-          current.round++;
-
+            current.round % 2 === 1 ? "O" : "X";
+          current.round += 1;
           current.rematch = {
             X: false,
             O: false
@@ -750,48 +763,36 @@ async function rematchOnline() {
 
         return current;
       },
-      {
-        applyLocally: false
-      }
+      { applyLocally: false }
     );
   } catch (error) {
     message(error.message);
   } finally {
     busy = false;
-    renderOnline();
+
+    if (mode === "online" && roomId === currentRoom) {
+      renderOnline();
+    }
   }
 }
 
 function exitRoom() {
-  if (unsubscribe) {
-    unsubscribe();
-    unsubscribe = null;
-  }
-
-  roomId = null;
-  roomData = null;
-  mySymbol = null;
+  disconnectRoom();
   mode = null;
-
   show("modeScreen");
 }
 
 async function copyInvite() {
-  if (!roomId) {
-    return;
-  }
+  if (!roomId) return;
 
   const url = new URL(location.href);
   url.searchParams.set("room", roomId);
 
   try {
-    await navigator.clipboard.writeText(
-      url.toString()
-    );
-
+    await navigator.clipboard.writeText(url.toString());
     message("Invite link copied!");
   } catch (error) {
-    message("Share this room code: " + roomId);
+    message(`Share this room code: ${roomId}`);
   }
 }
 
@@ -803,7 +804,6 @@ $("chooseOnline").onclick = async () => {
 };
 
 $("backFromAI").onclick = () => show("modeScreen");
-
 $("backFromOnline").onclick = () => show("modeScreen");
 
 document.querySelectorAll("[data-difficulty]")
@@ -821,9 +821,7 @@ cells.forEach((cell, index) => {
   cell.onclick = () => {
     if (mode === "ai") {
       playAI(index);
-    }
-
-    if (mode === "online") {
+    } else if (mode === "online") {
       playOnline(index);
     }
   };
@@ -832,9 +830,7 @@ cells.forEach((cell, index) => {
 $("playAgain").onclick = () => {
   if (mode === "ai") {
     startAI(difficulty);
-  }
-
-  if (mode === "online") {
+  } else if (mode === "online") {
     rematchOnline();
   }
 };
@@ -854,6 +850,12 @@ $("changeMode").onclick = () => {
     show("modeScreen");
   }
 };
+
+$("roomCode").addEventListener("input", event => {
+  event.target.value = event.target.value
+    .toUpperCase()
+    .replace(/[^A-Z2-9]/g, "");
+});
 
 const inviteCode = new URLSearchParams(
   location.search
