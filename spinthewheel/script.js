@@ -242,5 +242,4 @@ function displayResult() {
 
   showScreen(resultScreen);
 }
-
 initialize();

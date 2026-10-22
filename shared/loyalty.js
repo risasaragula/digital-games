@@ -1,4 +1,3 @@
-
 (function () {
   const STORAGE_PREFIX = "chefdesk_loyalty_customer_v1_";
   const POINTS_PER_WIN = 10;

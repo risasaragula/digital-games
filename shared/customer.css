@@ -95,6 +95,7 @@
   font-size: 11px;
   margin: 15px 0 0;
 }
+
 @media (max-width: 768px), (max-height: 650px) {
   .cd-login-overlay {
     padding: 12px;

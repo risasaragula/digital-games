@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
-
   const gameCards = document.querySelectorAll(".game-card");
   const reducedMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)"
