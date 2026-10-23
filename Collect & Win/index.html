@@ -6,27 +6,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#FAF7EF">
   <title>Collect & Win | ChefDesk</title>
-  <meta name="description" content="Collect food items and unlock new levels with ChefDesk.">
+  <meta
+    name="description"
+    content="Collect food items and unlock new levels with ChefDesk."
+  >
+
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
 </head>
+
 <body>
   <header class="header">
     <div class="container navbar">
       <a href="../Dashboard/index.html" class="logo">
         Chef<span>Desk</span><b>.</b>
       </a>
+
       <a href="../Dashboard/index.html" class="back-link">
         ← Dashboard
       </a>
     </div>
   </header>
+
   <main class="container">
     <section class="hero">
       <h1>Collect <em>& Win.</em></h1>
       <p>
         Every visit brings a new discovery.
-        Collect delicious food items and unlock rewards.
+        Collect delicious food items and unlock new levels.
       </p>
     </section>
 
@@ -67,17 +74,27 @@
         </div>
       </div>
 
-      <div class="visit-section">
+      <!-- STEP 1: VERIFY VISIT -->
+      <section
+        class="visit-section"
+        id="visitStep"
+        aria-labelledby="visitHeading"
+      >
+        <div class="step-indicator">STEP 01 / 02</div>
+
         <p class="eyebrow">VERIFY YOUR VISIT</p>
-        <h2>One bill. One discovery.</h2>
+
+        <h2 id="visitHeading">One bill. One discovery.</h2>
+
         <p class="visit-description">
           Enter your mobile number and bill code to unlock
-          one new food item for this visit.
+          one mystery food attempt for this visit.
         </p>
 
         <form id="visitForm" class="visit-form">
           <div class="form-group">
             <label for="phoneNumber">Mobile Number</label>
+
             <input
               type="tel"
               id="phoneNumber"
@@ -92,6 +109,7 @@
 
           <div class="form-group">
             <label for="billCode">Bill / Visit Code</label>
+
             <input
               type="text"
               id="billCode"
@@ -102,24 +120,43 @@
           </div>
 
           <button type="submit" class="primary-button">
-            Unlock Discovery
+            Unlock Discovery →
           </button>
         </form>
 
-        <p id="verificationStatus" class="verification-status" role="status"></p>
-      </div>
+        <p class="demo-notice">
+          Demo mode: visit codes are checked on this device only.
+        </p>
 
-      <div class="discovery-area">
+        <p
+          id="verificationStatus"
+          class="verification-status"
+          role="status"
+        ></p>
+      </section>
+
+      <!-- STEP 2: DISCOVER FOOD -->
+      <section
+        class="discovery-area"
+        id="discoveryStep"
+        aria-labelledby="discoveryHeading"
+        hidden
+      >
+        <div class="step-indicator">STEP 02 / 02</div>
+
         <p class="eyebrow">YOUR FOOD DISCOVERY</p>
-        <h2>What's on the menu?</h2>
+
+        <h2 id="discoveryHeading">What's on the menu?</h2>
 
         <p id="status" role="status" aria-live="polite">
-          Verify your visit to discover a food item.
+          Your mystery food attempt is ready!
         </p>
 
         <div class="mystery-card" id="mysteryCard">
           <div class="mystery-icon" id="mysteryIcon">❔</div>
+
           <h3 id="mysteryTitle">Mystery Food</h3>
+
           <p id="mysteryDescription">
             A delicious surprise awaits.
           </p>
@@ -133,13 +170,21 @@
         >
           Discover Food
         </button>
-      </div>
+
+        <a href="../My Rewards/index.html" class="secondary-button">🎁 My Rewards →</a>
+      </section>
     </section>
 
-    <section class="collections-section">
+    <section
+      class="collections-section"
+      id="collectionsSection"
+      hidden
+    >
       <div class="section-heading">
         <p class="eyebrow">YOUR FOOD COLLECTIONS</p>
+
         <h2>Complete the <em>menu.</em></h2>
+
         <p>
           Collect four items in each category to unlock the next level.
         </p>
@@ -151,14 +196,17 @@
       ></div>
     </section>
 
-    <section class="rewards-panel">
+    <section class="rewards-panel" id="rewardsPanel" hidden>
       <div class="rewards-icon">🏆</div>
+
       <div>
         <p class="eyebrow">COLLECTION MILESTONES</p>
+
         <h2>Every visit counts.</h2>
+
         <p>
-          Earn 10 collection points for each new food item and
-          100 bonus points when you complete a collection.
+          Earn 10 demo collection points for each new food item
+          and 100 bonus points when you complete a collection.
         </p>
       </div>
     </section>
